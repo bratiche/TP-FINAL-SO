@@ -1,0 +1,23 @@
+CREATE TABLE cliente(
+	id INTEGER NOT NULL,
+	nombre TEXT,
+	PRIMARY KEY(id)
+);
+
+CREATE TABLE funcion(
+	id INTENGET NOT NULL,
+	nombre_pelicula TEXT NOT NULL,
+	dia INT NOT NULL,
+	sala INT NOT NULL,
+	PRIMARY KEY(id)
+);
+
+CREATE TABLE reserva(
+	cliente_id INTEGER NOT NULL,
+	funcion_id INTEGER NOT NULL,
+	cancelado INTEGER NOT NULL,
+	asiento INTEGER NOT NULL,
+	FOREIGN KEY (cliente_id) REFERENCES cliente(id),
+	FOREIGN KEY (funcion_id) REFERENCES funcion(id)
+);
+
