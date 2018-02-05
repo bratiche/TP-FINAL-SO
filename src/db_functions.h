@@ -3,6 +3,9 @@
 
 #include "stdbool.h"
 #define SEATS 40
+#define ERR_MSG 0
+#define MAX_QUERY_SIZE 500
+
 
 /*Returs array of seats, 1 if they're occupied, 0 if they're empty*/
 int* consult(char* movie, int day, int sala);

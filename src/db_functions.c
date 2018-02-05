@@ -5,8 +5,6 @@
 #include "sqlite3.h"
 #include "stdbool.h"
 
-#define ERR_MSG 0
-#define MAX_QUERY_SIZE 500
 
 int retrieve_id(void *, int, char **, char **);
 int checkError(int , char *, sqlite3 *);
@@ -16,10 +14,8 @@ int get_client_id(char *name, sqlite3 *db, char *err_msg) {
     int rc, client_id;
     char *client_query = malloc(MAX_QUERY_SIZE);
     sprintf(client_query, "SELECT id FROM client WHERE client.name = '%s'", name);
-    rc = sqlite3_exec(db, client_query, retrieve_id, &client_id, &err_msg); //Devuelve aca el valor de callback?
+    rc = sqlite3_exec(db, client_query, retrieve_id, &client_id, &err_msg);
     if (checkError(rc, err_msg, db) != 0) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         free(client_query);
         return -1;
     }
@@ -35,8 +31,6 @@ int get_showcase_id(char *movie, int day, int room, sqlite3 *db, char *err_msg) 
             room, day);
     rc = sqlite3_exec(db, showcase_query, retrieve_id, &showcase_id, &err_msg);
     if (checkError(rc, err_msg, db) != 0) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         free(showcase_query);
         return -1;
     }
@@ -63,26 +57,20 @@ int book(char *movie, int day, int room, char *name, int seat) {
 
     client_id = get_client_id(name, db, err_msg);
     if (client_id == -1) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         return 1;
     }
 
     showcase_id = get_showcase_id(movie, day, room, db, err_msg);
     if (showcase_id == -1) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         return 1;
     }
 
 
     char *insert_query = malloc(MAX_QUERY_SIZE);
-    //Add logic to not insert if it already exists
+    //TODO Add logic to not insert if it already exists
     sprintf(insert_query, "INSERT INTO booking VALUES(%d, %d, 0, %d)", client_id, showcase_id, seat);
     rc = sqlite3_exec(db, insert_query, 0, 0, &err_msg);
     if (checkError(rc, err_msg, db) != 0) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
 
         free(insert_query);
 
@@ -111,15 +99,11 @@ int cancel(char *movie, int day, int room, char *name, int seat) {
 
     client_id = get_client_id(name, db, err_msg);
     if (client_id == -1) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         return 1;
     }
 
     showcase_id = get_showcase_id(movie, day, room, db, err_msg);
     if (showcase_id == -1) {
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         return 1;
     }
 
@@ -129,8 +113,6 @@ int cancel(char *movie, int day, int room, char *name, int seat) {
             client_id, showcase_id, seat);
     rc = sqlite3_exec(db,update_query,0,0,&err_msg);
     if(checkError(rc,err_msg,db)){
-        sqlite3_close(db);
-        sqlite3_free(err_msg);
         free(update_query);
         return 1;
     }

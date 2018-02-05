@@ -18,7 +18,8 @@ CREATE TABLE booking(
 	cancelled INTEGER NOT NULL,
 	seat INTEGER NOT NULL,
 	FOREIGN KEY (client_id) REFERENCES client(id),
-	FOREIGN KEY (showcase_id) REFERENCES showcase(id)
+	FOREIGN KEY (showcase_id) REFERENCES showcase(id),
+	PRIMARY KEY (client_id, showcase_id, seat)
 );
 
 
