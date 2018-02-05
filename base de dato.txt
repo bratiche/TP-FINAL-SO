@@ -1,23 +1,26 @@
-CREATE TABLE cliente(
+CREATE TABLE client(
 	id INTEGER NOT NULL,
-	nombre TEXT,
+	name TEXT,
 	PRIMARY KEY(id)
 );
 
-CREATE TABLE funcion(
-	id INTENGET NOT NULL,
-	nombre_pelicula TEXT NOT NULL,
-	dia INT NOT NULL,
-	sala INT NOT NULL,
+CREATE TABLE showcase(
+	id INTEGER NOT NULL,
+	movie TEXT NOT NULL,
+	day INT NOT NULL,
+	room INT NOT NULL,
 	PRIMARY KEY(id)
 );
 
-CREATE TABLE reserva(
-	cliente_id INTEGER NOT NULL,
-	funcion_id INTEGER NOT NULL,
-	cancelado INTEGER NOT NULL,
-	asiento INTEGER NOT NULL,
-	FOREIGN KEY (cliente_id) REFERENCES cliente(id),
-	FOREIGN KEY (funcion_id) REFERENCES funcion(id)
+CREATE TABLE booking(
+	client_id INTEGER NOT NULL,
+	showcase_id INTEGER NOT NULL,
+	cancelled INTEGER NOT NULL,
+	seat INTEGER NOT NULL,
+	FOREIGN KEY (client_id) REFERENCES client(id),
+	FOREIGN KEY (showcase_id) REFERENCES showcase(id)
 );
 
+
+EN SQLITE, INTEGER PRIMARY KEY SE INCREMENTA SOLO, ENTONCES
+SE PUEDE INSERTAR EN LA TABLA E IGNORAR PONER ID Y SE LLENA SOLO.
