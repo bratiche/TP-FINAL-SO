@@ -1,5 +1,5 @@
-#include "sqlite3.h"
 #include "db_functions.h"
+#include <sqlite3.h>
 #include <stdio.h>
 
 int main(int argc, char const *argv[]){

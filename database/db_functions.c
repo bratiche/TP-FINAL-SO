@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
-#include "sqlite3.h"
-#include "stdbool.h"
+#include <sqlite3.h>
 
 
 int retrieve_id(void *, int, char **, char **);
