@@ -13,8 +13,8 @@ int main(int argc, char const *argv[]) {
         return -1;
     }
 
-    book("Shrek",2,4,"tobias",19);
-    cancel("Shrek",2,4,"tobias",19);
+//    book("Shrek",2,4,"tobias",19);
+//    cancel("Shrek",2,4,"tobias",19);
 
     char buffer[BUFFER_SIZE];
     ssize_t n;

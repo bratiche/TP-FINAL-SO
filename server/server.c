@@ -8,13 +8,19 @@
 #include "server.h"
 
 #define PENDING_CONNECTIONS 10
+#define DATABASE_PROC       "database"
 
 struct server {
     int listen_socket;
+    // Write in db_in, read from db_out
+    int database_in, database_out;
 
     struct sockaddr_in address;
     socklen_t          address_len;
 };
+
+/** Forks database handler process and creates pipes for inter-process communication */
+static int database_init(Server server);
 
 int create_master_socket(int protocol, struct sockaddr *addr, socklen_t addr_len) {
     int sock_opt = true;
@@ -68,34 +74,108 @@ Server server_init(int port) {
         return NULL;
     }
 
+    if (database_init(server) < 0) {
+        free(server);
+        return NULL;
+    }
+
     return server;
 }
 
-int accept_connection(Server server) {
-
+ClientData * server_accept_connection(Server server) {
     int client_socket = accept(server->listen_socket, 0, 0);
 
     if (client_socket < 0) {
         perror("accept() failed");
+        return NULL;
+    }
+
+    ClientData * ret = malloc(sizeof(*ret));
+    if (ret != NULL) {
+        ret->client_fd = client_socket;
+    }
+    
+    return ret;
+}
+
+int database_init(Server server) {
+
+    //create pipes, bytes written on db_...[1] can be read from db_...[0]
+    int db_in[2];
+    int db_out[2];
+
+    int r1 = pipe(db_in);
+    int r2 = pipe(db_out);
+
+    if (r1 < 0 || r2 < 0) {
+        perror("pipe() failed");
         return -1;
     }
 
-    return client_socket;
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        fprintf(stderr, "Error starting database\n");
+        return -1;
+    } else if (pid == 0) {
+        dup2(db_in[0], STDIN_FILENO);
+        dup2(db_out[1], STDOUT_FILENO);
+
+        close(db_in[1]);
+        close(db_out[0]);
+
+        int value = execve(DATABASE_PROC, NULL, NULL);
+        if (value < 0) {
+            perror("execve() failed");
+            return -1;
+        }
+    } else {
+        close(db_in[0]);
+        close(db_out[1]);
+
+        server->database_in = db_in[1];
+        server->database_out = db_out[0];
+    }
+
+    return 0;
+}
+
+ssize_t server_read_request(Server server, ClientData * data) {
+    int client_fd = data->client_fd;
+    char * buffer = data->buffer;
+    ssize_t n;
+
+    bzero(buffer, BUFFER_SIZE);
+    n = recv(client_fd, buffer, BUFFER_SIZE, 0);
+    if (n > 0) {
+        n = write(server->database_in, buffer, strlen(buffer));
+    }
+
+    printf("%s", buffer);
+
+    return n;
+}
+
+ssize_t server_send_response(Server server, ClientData * data) {
+    int client_fd = data->client_fd;
+    char * buffer = data->buffer;
+    ssize_t n;
+
+    bzero(buffer, BUFFER_SIZE);
+    n = read(server->database_out, buffer, BUFFER_SIZE);
+    if (n > 0) {
+        n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);
+    }
+
+    return n;
+}
+
+void server_close_connection(Server server, ClientData * data) {
+    close(data->client_fd);
+    free(data);
 }
 
 void server_close(Server server) {
     close(server->listen_socket);
     free(server);
 }
-
-//Request read_request(int client_fd) {
-//
-//}
-//
-//void process_request(Request request, int client_fd) {
-//
-//}
-//
-//Response send_response(Request request, int client_fd) {
-//
-//}
