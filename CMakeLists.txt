@@ -14,10 +14,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_executable(client ${CLIENT_SOURCE_FILES})
 add_executable(server ${SERVER_SOURCE_FILES})
-add_executable(db_test ${DB_SOURCE_FILES})
+add_executable(database ${DB_SOURCE_FILES})
 
 find_package (sqlite3)
 if (SQLITE3_FOUND)
     include_directories(${SQLITE3_INCLUDE_DIRS})
-    target_link_libraries (db_test ${SQLITE3_LIBRARIES})
+    target_link_libraries (database ${SQLITE3_LIBRARIES})
 endif (SQLITE3_FOUND)

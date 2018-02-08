@@ -1,13 +1,15 @@
 #ifndef TP_FINAL_SO_DB_FUNCTIONS_H
 #define TP_FINAL_SO_DB_FUNCTIONS_H
 
+#include <sqlite3.h>
 #include "stdbool.h"
 #define SEATS 40
 #define ERR_MSG 0
 #define MAX_QUERY_SIZE 500
 
+int database_init();
 
-/*Returs array of seats, 1 if they're occupied, 0 if they're empty*/
+/*Returns array of seats, 1 if they're occupied, 0 if they're empty*/
 int* consult(char* movie, int day, int sala);
 
 /*Saves booking info on database*/

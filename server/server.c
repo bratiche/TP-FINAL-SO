@@ -26,13 +26,13 @@ int create_master_socket(int protocol, struct sockaddr *addr, socklen_t addr_len
         return -1;
     }
 
-    if(bind(sock, addr, addr_len) < 0) {
-        perror("bind() failed");
-        return -1;
-    }
-
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&sock_opt, sizeof(sock_opt)) < 0) {
         perror("setsockopt() failed");
+        return -1;
+    }
+    
+    if(bind(sock, addr, addr_len) < 0) {
+        perror("bind() failed");
         return -1;
     }
 
