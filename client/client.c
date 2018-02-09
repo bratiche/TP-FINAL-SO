@@ -18,6 +18,7 @@
 /** Estructura cliente */
 struct client {
     int fd;
+    char * name;
 
     // informacion del server
     struct sockaddr_storage server_address;
@@ -28,7 +29,7 @@ struct client {
 static int resolve_server_address(char * hostname, int port, Client client);
 static int connect_to_server(Client client);
 
-Client new_client(char * hostname, int port) {
+Client new_client(char * hostname, int port, char * client_name) {
 
     Client client = malloc(sizeof(struct client));
     if (client == NULL) {
@@ -46,6 +47,8 @@ Client new_client(char * hostname, int port) {
     }
 
     syslog(LOG_DEBUG, "[CLIENT] connected to %s:%d", hostname, port);
+
+    client->name = client_name;
 
     return client;
 }

@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <memory.h>
 #include <unistd.h>
+#include <semaphore.h>
 #include "server.h"
 
 #define PENDING_CONNECTIONS 10
@@ -17,6 +18,8 @@ struct server {
 
     struct sockaddr_in address;
     socklen_t          address_len;
+
+    sem_t              semaphore;
 };
 
 /** Forks database handler process and creates pipes for inter-process communication */
@@ -78,6 +81,8 @@ Server server_init(int port) {
         free(server);
         return NULL;
     }
+
+    sem_init(&server->semaphore, 0, 1);
 
     return server;
 }
@@ -148,6 +153,8 @@ ssize_t server_read_request(Server server, ClientData * data) {
     bzero(buffer, BUFFER_SIZE);
     n = recv(client_fd, buffer, BUFFER_SIZE, 0);
     if (n > 0) {
+        // trabamos el thread
+        sem_wait(&server->semaphore);
         n = write(server->database_in, buffer, strlen(buffer));
     }
 
@@ -167,6 +174,8 @@ ssize_t server_send_response(Server server, ClientData * data) {
         n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);
     }
 
+    //destrabamos
+    sem_post(&server->semaphore);
     return n;
 }
 

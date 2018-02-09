@@ -3,7 +3,7 @@
 
 typedef struct client * Client;
 
-Client new_client(char * hostname, int port);
+Client new_client(char * hostname, int port, char * client_name);
 
 /** Sends message to server */
 ssize_t client_send(Client client, char * buff);

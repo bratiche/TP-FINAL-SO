@@ -67,14 +67,6 @@ void cancel_reservation(Client client) {
 #define BUFFER_SIZE 4098
 
 void client_start(Client client) {
-//    char buff[CLIENT_NAME_LENGHT + 1] = {0};
-//    int ret = 0;
-//    do {
-//        ret = get_string("Enter your name: ", buff, CLIENT_NAME_LENGHT + 1);
-//    } while (ret == 0);
-//
-//    printf("Welcome %s!\n\n", buff);
-//
 
     char * msgs[] = {"Buy a ticket", "View tickets", "Cancel a reservation", "Exit"};
 
@@ -115,7 +107,15 @@ int main(int argc, char*argv[]) {
     char * hostname = "localhost";
     int server_port = 12345;
 
-    Client client = new_client(hostname, server_port);
+    char buff[CLIENT_NAME_LENGTH + 1] = {0};
+    int ret = 0;
+    do {
+        ret = get_string("Enter your name: ", buff, CLIENT_NAME_LENGTH + 1);
+    } while (ret == 0);
+
+    printf("Welcome %s!\n\n", buff);
+
+    Client client = new_client(hostname, server_port, buff);
 
     if (client == NULL) {
         return -1;
