@@ -4,7 +4,7 @@ Request * parse_request(char * buffer) {
 
 }
 
-void process_request(Request * request, char * buffer) {
+void process_request(Request * request, char ** buffer) {
     switch(request->type){
         case ADD_CLIENT:
             break;

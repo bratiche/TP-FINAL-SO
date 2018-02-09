@@ -31,7 +31,7 @@ typedef struct {
 
 Request * parse_request(char * buffer);
 
-void process_request(Request * request, char * buffer);
+void process_request(Request * request, char ** buffer);
 
 /**
  * EJEMPLOS:
