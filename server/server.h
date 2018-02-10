@@ -1,7 +1,7 @@
 #ifndef TPE_FINAL_SO_SERVER_H
 #define TPE_FINAL_SO_SERVER_H
 
-#define BUFFER_SIZE  4098
+#define BUFFER_SIZE  4096
 #define DEFAULT_PORT 12345
 
 typedef struct server * Server;

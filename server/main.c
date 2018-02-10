@@ -8,7 +8,7 @@
 #include "server.h"
 
 /**
- * Multi-threaded server implementation
+ * Multi-threaded concurrent server implementation
  * ...
  * ...
  */

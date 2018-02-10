@@ -1,0 +1,25 @@
+digraph g {
+    rankdir=LR;
+    size= "8.27,11.69";
+    ratio="compress"
+    center="true"
+
+    CMD                 [shape=doublecircle]
+
+    CMD     -> NEWLINE  [label="LF\nwait()"]
+    CMD     -> CMD      [label="ANY\ncmd()"]
+
+    NEWLINE             [label="NEW\nLINE"]
+
+    NEWLINE -> DOT      [label="'.'\nwait()"]
+    NEWLINE -> ARG      [label="ANY\nnew_arg()"]
+
+    DOT     -> ARG      [label="ANY\nnew_arg()\ndot()"]
+    DOT     -> FIN      [label="LF\nfin()"]
+
+    ARG     -> ARG      [label="ANY\narg()"]
+    ARG     -> NEWLINE  [label="LF\nwait()"]
+
+    FIN                 [shape=doublecircle]
+}
+

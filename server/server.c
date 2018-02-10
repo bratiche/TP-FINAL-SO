@@ -19,6 +19,7 @@ struct server {
     struct sockaddr_in address;
     socklen_t          address_len;
 
+    // semaforo para sincronizar consultas a la base de datos
     sem_t              semaphore;
 };
 
@@ -82,7 +83,10 @@ Server server_init(int port) {
         return NULL;
     }
 
-    sem_init(&server->semaphore, 0, 1);
+    if (sem_init(&server->semaphore, 0, 1) < 0) {
+        free(server);
+        return NULL;
+    }
 
     return server;
 }
@@ -129,7 +133,9 @@ int database_init(Server server) {
         close(db_in[1]);
         close(db_out[0]);
 
-        int value = execve(DATABASE_PROC, NULL, NULL);
+        char * argv[] = {NULL};
+        char * envp[] = {NULL};
+        int value = execve(DATABASE_PROC, argv, envp);
         if (value < 0) {
             perror("execve() failed");
             return -1;
@@ -153,7 +159,6 @@ ssize_t server_read_request(Server server, ClientData * data) {
     bzero(buffer, BUFFER_SIZE);
     n = recv(client_fd, buffer, BUFFER_SIZE, 0);
     if (n > 0) {
-        // trabamos el thread
         sem_wait(&server->semaphore);
         n = write(server->database_in, buffer, strlen(buffer));
     }
@@ -170,11 +175,10 @@ ssize_t server_send_response(Server server, ClientData * data) {
 
     bzero(buffer, BUFFER_SIZE);
     n = read(server->database_out, buffer, BUFFER_SIZE);
-    if (n > 0) {
+    if (n > 0) { //todo hay que checkear que la respuesta haya terminado
         n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);
     }
 
-    //destrabamos
     sem_post(&server->semaphore);
     return n;
 }
@@ -186,5 +190,8 @@ void server_close_connection(Server server, ClientData * data) {
 
 void server_close(Server server) {
     close(server->listen_socket);
+    close(server->database_in);
+    close(server->database_out);
+    sem_destroy(&server->semaphore);
     free(server);
 }

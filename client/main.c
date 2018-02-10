@@ -64,7 +64,7 @@ void cancel_reservation(Client client) {
     // ask confirmation
 }
 
-#define BUFFER_SIZE 4098
+#define BUFFER_SIZE 4096
 
 void client_start(Client client) {
 

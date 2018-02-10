@@ -1,7 +1,8 @@
 #ifndef TPE_FINAL_SO_REQUEST_H
 #define TPE_FINAL_SO_REQUEST_H
 
-#define MAX_ARGS 5
+#define MAX_ARGS    5
+#define ARG_SIZE    50
 
 typedef enum {
                             // argumentos           respuesta
@@ -24,14 +25,30 @@ typedef enum {
 
 } request_type;
 
+typedef enum {
+    request_cmd,
+    request_args,
+    request_done,
+    request_error,
+    request_error_invalid_cmd,
+    request_error_too_many_arguments,
+    request_error_argument_too_long,
+} request_state;
+
 typedef struct {
-    request_type type;
+    int type;
+    int argc;
     char * args[MAX_ARGS];
+    request_state state;
 } Request;
 
 Request * parse_request(char * buffer);
 
 void process_request(Request * request, char * buffer);
+
+void print_request(Request * request);
+
+void destroy_request(Request * request);
 
 /**
  * EJEMPLOS:
@@ -44,6 +61,8 @@ void process_request(Request * request, char * buffer);
  *  4
  *  4
  *  2
+ *  .
+ *
  *
  *  mostrar reservados(response):
  *
@@ -65,7 +84,7 @@ void process_request(Request * request, char * buffer);
 
 /**
  * paquete de request:
- * REQ_ID \n ARGUMENTOS separados por \n
+ * REQ_ID \n ARGUMENTOS separados por \n . \n
  *
  * paquete response:
  * OK/ERR \n DATOS separados por \n . \n

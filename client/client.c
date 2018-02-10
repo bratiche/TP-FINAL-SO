@@ -13,7 +13,7 @@
 #include "client.h"
 
 /** Tamanio de los buffers de I/O */
-#define BUFFER_SIZE 4098
+#define BUFFER_SIZE 4096
 
 /** Estructura cliente */
 struct client {
