@@ -4,7 +4,7 @@ project(TPE-FINAL-SO)
 set(CMAKE_C_STANDARD 99)
 
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread --std=c99 -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -D_POSIX_C_SOURCE=200112L -O1 -fsanitize=address")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread --std=c99 -pedantic -pedantic-errors -fsanitize=address")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -lsqlite3 --std=c99 -pedantic -pedantic-errors -fsanitize=address")
 
 aux_source_directory(client CLIENT_SOURCE_FILES)
 aux_source_directory(server SERVER_SOURCE_FILES)
