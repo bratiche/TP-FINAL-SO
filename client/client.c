@@ -12,9 +12,6 @@
 #include <unistd.h>
 #include "client.h"
 
-/** Tamanio de los buffers de I/O */
-#define BUFFER_SIZE 4096
-
 /** Estructura cliente */
 struct client {
     int fd;
@@ -29,7 +26,7 @@ struct client {
 static int resolve_server_address(char * hostname, int port, Client client);
 static int connect_to_server(Client client);
 
-Client new_client(char * hostname, int port, char * client_name) {
+Client client_init(char *hostname, int port) {
 
     Client client = malloc(sizeof(struct client));
     if (client == NULL) {
@@ -47,8 +44,6 @@ Client new_client(char * hostname, int port, char * client_name) {
     }
 
     syslog(LOG_DEBUG, "[CLIENT] connected to %s:%d", hostname, port);
-
-    client->name = client_name;
 
     return client;
 }
@@ -114,7 +109,8 @@ ssize_t client_recv(Client client, char * buff) {
     return recv(client->fd, buff, BUFFER_SIZE, 0);
 }
 
-void close_client(Client client) {
+void client_close(Client client) {
     close(client->fd);
     free(client);
 }
+

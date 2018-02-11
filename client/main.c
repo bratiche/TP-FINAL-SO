@@ -5,19 +5,33 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <errno.h>
 
 #include "getnum.h"
 #include "client.h"
 
 #define CLEAR_BUFFER        while (getchar() != '\n')
-#define CLIENT_NAME_LENGTH  32
 
 typedef enum {
-    BUY = 1,
-    VIEW,
-    CANCEL,
-    EXIT
-} main_menu_option;
+    LOGIN_ADMIN = 1,
+    LOGIN_CLIENT,
+    LOGIN_EXIT
+} login_menu_option;
+
+typedef enum {
+    ADMIN_ADD_SHOWCASE = 1,
+    ADMIN_REMOVE_SHOWCASE,
+
+    ADMIN_EXIT,
+} admin_menu_option;
+
+typedef enum {
+    CLIENT_BUY_TICKET = 1,
+    CLIENT_VIEW_TICKETS,
+    CLIENT_CANCEL_RESERVATION,
+    CLIENT_EXIT
+} client_menu_option;
 
 int get_string(char * msg, char * buff, unsigned int max_len);
 int get_option(char * msg, char ** options, unsigned int count);
@@ -27,8 +41,21 @@ int getkey() {
     return getchar();
 }
 
-void buy_ticket(Client client) {
-    //TODO query
+int get_showcase(char * movie) {
+    return 0;
+}
+
+int get_seat() {
+    return 0;
+}
+
+int book(char * client, char * movie, int day, int room, int seat) {
+
+}
+
+
+void buy_ticket(Client client, char * client_name) {
+    //TODO query GET_MOVIES
     char * movies[] = {"EZ", "PZ", "Lemon", "Squeeze"};
     unsigned int count = 4;
 
@@ -36,12 +63,23 @@ void buy_ticket(Client client) {
     int movie = get_option("Choose a movie: ", movies, count);
 
     // pick showcase
+    // TODO query GET_SHOWCASES
+    int showcase = get_showcase(movies[movie]);
 
     // pick seat
+    // TODO query GET_SEATS
+    int seat = get_seat();
+
+    // TODO query ADD_BOOKING
+    int booking = book(client_name, movies[movie], 0, 0, seat);
+
+    if (booking != 0) {
+        //ERROR
+    }
 }
 
-void view_tickets(Client client) {
-    //TODO query
+void view_tickets(Client client, char * client_name) {
+    //TODO query GET_RESERVATIONS
 
     // show tickets
     //Ticket * tickets;
@@ -53,7 +91,7 @@ void view_tickets(Client client) {
     getkey();
 }
 
-void cancel_reservation(Client client) {
+void cancel_reservation(Client client, char * client_name) {
     //TODO query
     char * reservations[] = {"EZ", "PZ"};
     unsigned int count = 2;
@@ -64,65 +102,123 @@ void cancel_reservation(Client client) {
     // ask confirmation
 }
 
-#define BUFFER_SIZE 4096
+/** Admin options */
+void admin_menu(Client client) {
 
-void client_start(Client client) {
+    char * options[] = {"Add showcase", "Remove showcase", "Exit"};
 
-    char * msgs[] = {"Buy a ticket", "View tickets", "Cancel a reservation", "Exit"};
+    printf("Welcome admin!\n\n");
 
-    char buffer[BUFFER_SIZE];
     while (true) {
-        main_menu_option option;
-        //main_menu_option option = (main_menu_option) get_option("Choose an option: ", msgs, EXIT);
-
-        //todo remove
-        fgets(buffer, BUFFER_SIZE, stdin);
-        client_send(client, buffer);
-
-        if (client_recv(client, buffer) <= 0) {
-            printf("Server closed connection!\n");
-            return;
-        }
-        printf("%s", buffer);
-        //
+        admin_menu_option option = (admin_menu_option) get_option("Choose an option: ", options, ADMIN_EXIT);
 
         switch (option) {
-            case BUY:
-                //buy_ticket(client);
+            case ADMIN_ADD_SHOWCASE:
                 break;
-            case VIEW:
-                //view_tickets(client);
+            case ADMIN_REMOVE_SHOWCASE:
                 break;
-            case CANCEL:
-                //cancel_reservation(client);
-                break;
-            case EXIT:
+            case ADMIN_EXIT:
                 return;
         }
     }
 }
 
-int main(int argc, char*argv[]) {
+/** Client options */
+void client_menu(Client client) {
 
-    char * hostname = "localhost";
-    int server_port = 12345;
-
-    char buff[CLIENT_NAME_LENGTH + 1] = {0};
+    char client_name[CLIENT_NAME_LENGTH + 1] = {0};
     int ret = 0;
     do {
-        ret = get_string("Enter your name: ", buff, CLIENT_NAME_LENGTH + 1);
+        ret = get_string("Enter your name: ", client_name, CLIENT_NAME_LENGTH + 1);
     } while (ret == 0);
 
-    printf("Welcome %s!\n\n", buff);
+    printf("Welcome %s!\n\n", client_name);
 
-    Client client = new_client(hostname, server_port, buff);
+    //TODO QUERY ADD_CLIENT(buff)
 
+    char * options[] = {"Buy a ticket", "View tickets", "Cancel a reservation", "Exit"};
+
+    while (true) {
+        client_menu_option option =  (client_menu_option) get_option("Choose an option: ", options, CLIENT_EXIT);
+
+//        char buffer[BUFFER_SIZE];
+//        fgets(buffer, BUFFER_SIZE, stdin);
+//        client_send(client, buffer);
+//
+//        if (client_recv(client, buffer) <= 0) {
+//            printf("Server closed connection!\n");
+//            return;
+//        }
+//        printf("%s", buffer);
+
+        switch (option) {
+            case CLIENT_BUY_TICKET:
+                buy_ticket(client, client_name);
+                break;
+            case CLIENT_VIEW_TICKETS:
+                view_tickets(client, client_name);
+                break;
+            case CLIENT_CANCEL_RESERVATION:
+                cancel_reservation(client, client_name);
+                break;
+            case CLIENT_EXIT:
+                return;
+        }
+    }
+}
+
+/** Login */
+void client_start(Client client) {
+    char * options[] = {"Login as Admin", "Login as client", "Exit"};
+
+    while (true) {
+        login_menu_option option = (login_menu_option) get_option("Login as: ", options, LOGIN_EXIT);
+
+        switch (option) {
+            case LOGIN_ADMIN:
+                admin_menu(client);
+                break;
+            case LOGIN_CLIENT:
+                client_menu(client);
+                break;
+            case LOGIN_EXIT:
+                return;
+        }
+    }
+}
+
+int parse_port(char *optarg) {
+    char *end = 0;
+    long sl   = strtol(optarg, &end, 10);
+
+    if (end == optarg|| '\0' != *end
+        || ((LONG_MIN == sl || LONG_MAX == sl) && ERANGE == errno)
+        || sl < 0 || sl > USHRT_MAX) {
+        fprintf(stderr, "port should be an integer: %s\n", optarg);
+        exit(1);
+    }
+
+    return (int) sl;
+}
+
+int main(int argc, char*argv[]) {
+
+    char * hostname = DEFAULT_HOST;
+    int server_port = DEFAULT_PORT;
+    if (argc >= 2) {
+        hostname = argv[1];
+        if (argc >=3) {
+            server_port = parse_port(argv[2]);
+        }
+    }
+
+    Client client = client_init(hostname, server_port);
     if (client == NULL) {
         return -1;
     }
 
     client_start(client);
-    close_client(client);
+    client_close(client);
     return 0;
 }
 
