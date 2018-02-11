@@ -30,8 +30,7 @@ char * create_tables =
 
 char * filename = "cinema.db";
 
-int retrieve_id(void *, int, char **, char **);
-int checkError(int , char *, sqlite3 *);
+
 
 int database_init() {
 
@@ -41,27 +40,72 @@ int database_init() {
     if (sqlite3_open(filename, &db) != SQLITE_OK) {
         fprintf(stderr, "Couldn't open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
-        return -1;
+        return UNSPECIFIED_ERROR;
     }
 
     if (sqlite3_exec(db, create_tables, NULL, NULL, &err_msg) != SQLITE_OK) {
         fprintf(stderr, "Failed to create database tables. SQL error: %s\n", err_msg);
         sqlite3_free(err_msg);
-        return -1;
+        return UNSPECIFIED_ERROR;
     }
 
     sqlite3_close(db);
-    return 0;
+    return OK;
 }
+
+
+sqlite3* open_cinemadb(){
+    sqlite3 *db;
+    char *err_msg = ERR_MSG;
+
+    int rc = sqlite3_open("cinema.db", &db);
+    int client_id, showcase_id;
+
+    if (rc != SQLITE_OK) {
+
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return NULL;
+    }
+    return db;
+}
+
+
+
+int add_client(char *name){
+    sqlite3* db=open_cinemadb(); //TODO DESPUES VUELA
+    if(db==NULL){
+        return UNSPECIFIED_ERROR;
+    }
+
+    int client_id = get_client_id(name, db, "TUTI FRUTI");
+    if (client_id == -1) { //TODO volar magicnumber
+
+        char *insert_query = malloc(MAX_QUERY_SIZE);
+        sprintf(insert_query, "INSERT INTO client(name) VALUES('%s')", name);
+        int rc = sqlite3_exec(db, insert_query, 0, 0, "TUTI FRUTI");
+        if (check_error(rc, "TUTI FRUTI", db) != 0) {
+            free(insert_query);
+            return UNSPECIFIED_ERROR;
+        }
+        sqlite3_close(db);
+        free(insert_query);
+        return OK;
+    }else{
+        return ALREADY_EXIST;
+    }
+}
+
 
 int get_client_id(char *name, sqlite3 *db, char *err_msg) {
     int rc, client_id;
     char *client_query = malloc(MAX_QUERY_SIZE);
     sprintf(client_query, "SELECT id FROM client WHERE client.name = '%s'", name);
     rc = sqlite3_exec(db, client_query, retrieve_id, &client_id, &err_msg);
-    if (checkError(rc, err_msg, db) != 0) {
+    if (check_error(rc, err_msg, db) != 0) {
         free(client_query);
-        return -1;
+        return UNSPECIFIED_ERROR;
     }
     free(client_query);
     return client_id;
@@ -74,7 +118,7 @@ int get_showcase_id(char *movie, int day, int room, sqlite3 *db, char *err_msg) 
             "SELECT id FROM showcase WHERE showcase.movie = '%s' AND showcase.room = %d AND showcase.day = %d", movie,
             room, day);
     rc = sqlite3_exec(db, showcase_query, retrieve_id, &showcase_id, &err_msg);
-    if (checkError(rc, err_msg, db) != 0) {
+    if (check_error(rc, err_msg, db) != 0) {
         free(showcase_query);
         return -1;
     }
@@ -82,6 +126,9 @@ int get_showcase_id(char *movie, int day, int room, sqlite3 *db, char *err_msg) 
     return showcase_id;
 }
 
+
+
+//TODO que es consult?
 int *consult(char *movie, int day, int room);
 
 int book(char *movie, int day, int room, char *name, int seat) {
@@ -114,7 +161,7 @@ int book(char *movie, int day, int room, char *name, int seat) {
     //TODO Add logic to not insert if it already exists
     sprintf(insert_query, "INSERT INTO booking VALUES(%d, %d, 0, %d)", client_id, showcase_id, seat);
     rc = sqlite3_exec(db, insert_query, 0, 0, &err_msg);
-    if (checkError(rc, err_msg, db) != 0) {
+    if (check_error(rc, err_msg, db) != 0) {
 
         free(insert_query);
 
@@ -156,7 +203,7 @@ int cancel(char *movie, int day, int room, char *name, int seat) {
             "UPDATE booking SET cancelled = 1 WHERE booking.client_id = '%d' AND booking.showcase_id = '%d' AND booking.seat = '%d'",
             client_id, showcase_id, seat);
     rc = sqlite3_exec(db,update_query,0,0,&err_msg);
-    if(checkError(rc,err_msg,db)){
+    if(check_error(rc, err_msg, db)){
         free(update_query);
         return 1;
     }
@@ -167,7 +214,7 @@ int cancel(char *movie, int day, int room, char *name, int seat) {
 
 }
 
-int checkError(int rc, char *err_msg, sqlite3 *db) {
+int check_error(int rc, char *err_msg, sqlite3 *db) {
     if (rc != SQLITE_OK) {
 
         fprintf(stderr, "SQL error: %s\n", err_msg);
@@ -182,7 +229,6 @@ int checkError(int rc, char *err_msg, sqlite3 *db) {
 
 int retrieve_id(void *data, int argc, char **argv,
                 char **azColName) {
-
 
     for (int i = 0; i < argc; i++) {
 

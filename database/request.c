@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "db_functions.h"
 #include "request.h"
 #include "request_parser.h"
 
