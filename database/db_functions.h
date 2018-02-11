@@ -3,15 +3,19 @@
 
 #include <sqlite3.h>
 #include "stdbool.h"
+#define DB_FILENAME "cinema.db"
 #define SEATS 40
 #define ERR_MSG 0
 #define MAX_QUERY_SIZE 500
 
+
 #define UNSPECIFIED_ERROR -1
+
 
 typedef enum{
         OK,
         ALREADY_EXIST,
+        FAILED_TO_OPEN
 
 
 } return_type;
@@ -20,6 +24,9 @@ int database_init();
 
 
 //TODO: AGREGADOS DE OTA
+int database_open();
+int database_close();
+
 int add_client(char *name);
 
 

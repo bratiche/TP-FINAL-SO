@@ -28,7 +28,11 @@ char * create_tables =
                 "\tPRIMARY KEY (client_id, showcase_id, seat)\n"
                 ");";
 
-char * filename = "cinema.db";
+char * filename = "cinema.db"; //TODO ELIMINAR
+sqlite3* db_fd;
+char* exec_error_msg="Ocurrio un error en la ejecucion\n"; //todo despues tiene que ser NULL
+
+
 
 
 
@@ -54,104 +58,95 @@ int database_init() {
 }
 
 
-sqlite3* open_cinemadb(){
-    sqlite3 *db;
-    char *err_msg = ERR_MSG;
-
-    int rc = sqlite3_open("cinema.db", &db);
-    int client_id, showcase_id;
-
-    if (rc != SQLITE_OK) {
-
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return NULL;
+//ES EL QUE INICIALIZA LA DB_FD
+int database_open(){
+    if (sqlite3_open(filename, &db_fd) != SQLITE_OK) {
+        sqlite3_close(db_fd);
+        return FAILED_TO_OPEN;
     }
-    return db;
+    return OK;
 }
 
-
+int database_close(){
+    sqlite3_close(db_fd);
+    return OK;
+}
 
 int add_client(char *name){
-    sqlite3* db=open_cinemadb(); //TODO DESPUES VUELA
-    if(db==NULL){
+    //TODO VERIFICAR SI EXISTE EL CLIENTE
+    char *insert_query = malloc(MAX_QUERY_SIZE);
+    sprintf(insert_query, "INSERT INTO client(name) VALUES('%s')", name);
+    int rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
+    free(insert_query);
+    if(rc!=SQLITE_OK)
         return UNSPECIFIED_ERROR;
-    }
-
-    int client_id = get_client_id(name, db, "TUTI FRUTI");
-    if (client_id == -1) { //TODO volar magicnumber
-
-        char *insert_query = malloc(MAX_QUERY_SIZE);
-        sprintf(insert_query, "INSERT INTO client(name) VALUES('%s')", name);
-        int rc = sqlite3_exec(db, insert_query, 0, 0, "TUTI FRUTI");
-        if (check_error(rc, "TUTI FRUTI", db) != 0) {
-            free(insert_query);
-            return UNSPECIFIED_ERROR;
-        }
-        sqlite3_close(db);
-        free(insert_query);
-        return OK;
-    }else{
-        return ALREADY_EXIST;
-    }
+    return OK;
 }
 
+int add_showcase(char *movie, int day, int room) {
+    //TODO VERIFICAR SI EXISTE EL SHOWCASE
+    char *insert_query = malloc(MAX_QUERY_SIZE);
+    sprintf(insert_query, "INSERT INTO showcase(movie,day,room) VALUES('%s',%d,%d)", movie,day,room);
+    int rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
+    free(insert_query);
+    if(rc!=SQLITE_OK)
+        return UNSPECIFIED_ERROR;
+    return OK;
+}
 
-int get_client_id(char *name, sqlite3 *db, char *err_msg) {
+int get_client_id(char *name) {
     int rc, client_id;
     char *client_query = malloc(MAX_QUERY_SIZE);
     sprintf(client_query, "SELECT id FROM client WHERE client.name = '%s'", name);
-    rc = sqlite3_exec(db, client_query, retrieve_id, &client_id, &err_msg);
-    if (check_error(rc, err_msg, db) != 0) {
-        free(client_query);
+    rc = sqlite3_exec(db_fd, client_query, retrieve_id, &client_id, &exec_error_msg);
+    free(client_query);
+    if (check_error(rc, exec_error_msg, db_fd) != OK) { //TODO ELIMINAR
         return UNSPECIFIED_ERROR;
     }
-    free(client_query);
     return client_id;
 }
 
-int get_showcase_id(char *movie, int day, int room, sqlite3 *db, char *err_msg) {
+int get_showcase_id(char *movie, int day, int room) {
     int rc, showcase_id;
     char *showcase_query = malloc(MAX_QUERY_SIZE);
     sprintf(showcase_query,
             "SELECT id FROM showcase WHERE showcase.movie = '%s' AND showcase.room = %d AND showcase.day = %d", movie,
             room, day);
-    rc = sqlite3_exec(db, showcase_query, retrieve_id, &showcase_id, &err_msg);
-    if (check_error(rc, err_msg, db) != 0) {
+    rc = sqlite3_exec(db_fd, showcase_query, retrieve_id, &showcase_id, &exec_error_msg);
+    if (check_error(rc, exec_error_msg, db_fd) != OK) { //TODO ELIMINAR
         free(showcase_query);
-        return -1;
+        return UNSPECIFIED_ERROR;
     }
     free(showcase_query);
     return showcase_id;
 }
 
 
-
 //TODO que es consult?
 int *consult(char *movie, int day, int room);
 
 int book(char *movie, int day, int room, char *name, int seat) {
-    sqlite3 *db;
+    sqlite3 *db=db_fd;
     char *err_msg = ERR_MSG;
-
-    int rc = sqlite3_open("cinema.db", &db);
+    int rc;
+//    int rc = sqlite3_open("cinema.db", &db);
     int client_id, showcase_id;
+//
+//    if (rc != SQLITE_OK) {
+//
+//        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
+//        sqlite3_close(db);
+//
+//        return 1;
+//    }
 
-    if (rc != SQLITE_OK) {
 
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-    client_id = get_client_id(name, db, err_msg);
+    client_id = get_client_id(name);
     if (client_id == -1) {
         return 1;
     }
 
-    showcase_id = get_showcase_id(movie, day, room, db, err_msg);
+    showcase_id = get_showcase_id(movie, day, room);
     if (showcase_id == -1) {
         return 1;
     }
@@ -188,12 +183,12 @@ int cancel(char *movie, int day, int room, char *name, int seat) {
         return 1;
     }
 
-    client_id = get_client_id(name, db, err_msg);
+    client_id = get_client_id(name);
     if (client_id == -1) {
         return 1;
     }
 
-    showcase_id = get_showcase_id(movie, day, room, db, err_msg);
+    showcase_id = get_showcase_id(movie, day, room);
     if (showcase_id == -1) {
         return 1;
     }
@@ -214,6 +209,7 @@ int cancel(char *movie, int day, int room, char *name, int seat) {
 
 }
 
+//TODO DEPRECATED
 int check_error(int rc, char *err_msg, sqlite3 *db) {
     if (rc != SQLITE_OK) {
 
