@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <memory.h>
+
 
 char * create_tables =
         "CREATE TABLE IF NOT EXISTS client(\n"
@@ -30,15 +32,10 @@ char * create_tables =
 
 char * filename = "cinema.db"; //TODO ELIMINAR
 sqlite3* db_fd;
-char* exec_error_msg="Ocurrio un error en la ejecucion\n"; //todo despues tiene que ser NULL
+char* exec_error_msg="Modifica exec\n"; //todo despues tiene que ser NULL
 
 
 
-
-int callback_dummy(void *data, int argc, char **argv, char **azColName) {return 0;}
-
-
-//ES EL QUE INICIALIZA LA DB_FD
 int database_open(){
     int file_exist=access(DB_FILENAME,F_OK);
     if (sqlite3_open(DB_FILENAME, &db_fd) != SQLITE_OK) {
@@ -103,23 +100,61 @@ int get_showcase_id(char *movie, int day, int room) {
     return showcase_id;
 }
 
-int* show_booking(char* movie,int day,int room){
+
+int show_client_booking(char* name,char **str){
+    const unsigned char * textCol=0;
+    sqlite3_stmt *stmt = NULL;
+    int client_id = get_client_id(name);
+    if (client_id == INVALID_ID) {
+        return BAD_CLIENT;
+    }
+    char* showq=malloc(MAX_QUERY_SIZE);
+    sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id WHERE client_id = %d AND cancelled = 0",client_id);
+    int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+        return FAIL_QUERY;
+
+    char *response=calloc(STR_BLOCK_SIZE,0);
+    int rowCount = 0;
+    rc = sqlite3_step(stmt);
+    while (rc != SQLITE_DONE && rc != SQLITE_OK)
+    {
+        rowCount++;
+        int colCount = sqlite3_column_count(stmt);
+        for (int colIndex = 0; colIndex < colCount; colIndex++)
+        {
+            int type = sqlite3_column_type(stmt, colIndex);
+            const char * columnName = sqlite3_column_name(stmt, colIndex);
+            textCol = sqlite3_column_text(stmt, colIndex);
+            printf("%s\n",textCol); //TODO ELIMINAR
+        }
+        //TODO RETORNAR RESPONSE
+        rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    *str=response;
+    return OK;
+}
+
+int show_seats(char *movie, int day, int room, int** rseats){
     int rc,show_id=get_showcase_id(movie,day,room);
     if(show_id == INVALID_ID) {
-        return NULL;
+        return BAD_SHOWCASE;
     }
-    int* seats=calloc(SEATS* sizeof(int),0);
+    int* seats=calloc(SEATS* sizeof(int),0); //TODO MAL
     for(int i=0;i<SEATS;i++){
         int client_id=INVALID_ID;
         char *showb_query=malloc(MAX_QUERY_SIZE);
         sprintf(showb_query,"SELECT client_id FROM booking WHERE showcase_id = %d AND seat = %d AND cancelled = 0",show_id,i);
-        rc = sqlite3_exec(db_fd,showb_query,callback_dummy,&client_id,&exec_error_msg);
+        rc = sqlite3_exec(db_fd,showb_query,NULL,&client_id,&exec_error_msg);
         free(showb_query);
         if(client_id==INVALID_ID){
             seats[i]=1;
         }
     }
-    return seats;
+    *rseats=seats;
+    return OK;
 }
 
 
@@ -127,125 +162,56 @@ int* show_booking(char* movie,int day,int room){
 //int *consult(char *movie, int day, int room);
 
 int add_booking(char *movie, int day, int room, char *name, int seat) {
-    sqlite3 *db=db_fd;
     char *err_msg = ERR_MSG;
     int rc;
-//    int rc = sqlite3_open("cinema.db", &db);
     int client_id, showcase_id;
-//
-//    if (rc != SQLITE_OK) {
-//
-//        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-//        sqlite3_close(db);
-//
-//        return 1;
-//    }
-
 
     client_id = get_client_id(name);
-    if (client_id == -1) {
-        return 1;
+    if (client_id == INVALID_ID) {
+        return BAD_CLIENT;
     }
 
     showcase_id = get_showcase_id(movie, day, room);
-    if (showcase_id == -1) {
-        return 1;
+    if (showcase_id == INVALID_ID) {
+        return BAD_SHOWCASE;
     }
 
 
     char *insert_query = malloc(MAX_QUERY_SIZE);
     //TODO Add logic to not insert if it already exists
     sprintf(insert_query, "INSERT INTO booking VALUES(%d, %d, 0, %d)", client_id, showcase_id, seat);
-    rc = sqlite3_exec(db, insert_query, 0, 0, &err_msg);
-    if (check_error(rc, err_msg, db) != 0) {
-
-        free(insert_query);
-
-        return 1;
-    }
-
-    sqlite3_close(db);
+    rc = sqlite3_exec(db_fd, insert_query, NULL, NULL, NULL);
     free(insert_query);
-
-    return 0;
+    if (rc != SQLITE_OK)
+        return FAIL_QUERY;
+    return OK;
 }
 
 int cancel_booking(char *movie, int day, int room, char *name, int seat) {
-    sqlite3 *db;
-    char *err_msg = ERR_MSG;
-    int client_id, showcase_id;
-
-    int rc = sqlite3_open("cinema.db", &db);
-
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return 1;
-    }
+    int client_id, showcase_id, rc;
 
     client_id = get_client_id(name);
-    if (client_id == -1) {
-        return 1;
+    if (client_id == INVALID_ID) {
+        return BAD_CLIENT;
     }
 
     showcase_id = get_showcase_id(movie, day, room);
-    if (showcase_id == -1) {
-        return 1;
+    if (showcase_id == INVALID_ID) {
+        return BAD_SHOWCASE;
     }
 
     char *update_query = malloc(MAX_QUERY_SIZE);
     sprintf(update_query,
             "UPDATE booking SET cancelled = 1 WHERE booking.client_id = '%d' AND booking.showcase_id = '%d' AND booking.seat = '%d'",
             client_id, showcase_id, seat);
-    rc = sqlite3_exec(db,update_query,0,0,&err_msg);
-    if(check_error(rc, err_msg, db)){
-        free(update_query);
-        return 1;
-    }
-    sqlite3_close(db);
+    rc = sqlite3_exec(db_fd,update_query,NULL,NULL,NULL);
     free(update_query);
-
-    return 0;
-
-}
-
-//TODO DEPRECATED
-int check_error(int rc, char *err_msg, sqlite3 *db) {
-    if (rc != SQLITE_OK) {
-
-        fprintf(stderr, "SQL error: %s\n", err_msg);
-
-        sqlite3_free(err_msg);
-        sqlite3_close(db);
-
-        return 1;
+    if (rc != SQLITE_OK){
+        return FAIL_QUERY;
     }
-    return 0;
-}
-
-//TODO DEPRECATED
-int database_init() {
-
-    sqlite3 * db;
-    char * err_msg = ERR_MSG;
-
-    if (sqlite3_open(filename, &db) != SQLITE_OK) {
-        fprintf(stderr, "Couldn't open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return UNSPECIFIED_ERROR;
-    }
-
-    if (sqlite3_exec(db, create_tables, NULL, NULL, &err_msg) != SQLITE_OK) {
-        fprintf(stderr, "Failed to create database tables. SQL error: %s\n", err_msg);
-        sqlite3_free(err_msg);
-        return UNSPECIFIED_ERROR;
-    }
-
-    sqlite3_close(db);
     return OK;
-}
 
+}
 
 
 int callback_retr_id(void *data, int argc, char **argv, char **azColName) {

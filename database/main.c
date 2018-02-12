@@ -8,16 +8,7 @@
 #define BUFFER_SIZE 4096
 
 int main(int argc, char const *argv[]) {
-    printf("%s\n",sqlite3_libversion());
-    database_open();
-    add_client("MACRI");
-    int prueba=get_client_id("MACRI gatoASD");
-    printf("%d\n",prueba);
-    database_close();
-
-    if (database_init() < 0) {
-        return -1;
-    }
+    database_open(); //TODO VERIFICAR SI SE ROMPE
 
     char buffer[BUFFER_SIZE];
     ssize_t n;
@@ -40,5 +31,6 @@ int main(int argc, char const *argv[]) {
         request_parser_destroy(&parser);
     } while (n > 0);
 
+    database_close();
     return 0;
 }

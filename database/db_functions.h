@@ -7,6 +7,7 @@
 #define SEATS 40
 #define ERR_MSG 0
 #define MAX_QUERY_SIZE 500
+#define STR_BLOCK_SIZE 100
 
 
 #define UNSPECIFIED_ERROR -1
@@ -16,8 +17,9 @@ typedef enum{
         OK,
         ALREADY_EXIST,
         FAIL_TO_OPEN,
-        FAIL_QUERY
-
+        FAIL_QUERY,
+        BAD_CLIENT,
+        BAD_SHOWCASE
 
 } return_type;
 
@@ -29,6 +31,7 @@ int database_open();
 int database_close();
 
 int add_client(char *name);
+int add_showcase(char *movie, int day, int room);
 
 int get_client_id(char *name);
 

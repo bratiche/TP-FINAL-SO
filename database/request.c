@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "request.h"
 #include "../common/protocol.h"
+#include "db_functions.h"
 
 extern bool debug;
 
@@ -30,10 +31,16 @@ Request * new_request(void) {
 }
 
 void process_request(Request * request, char * buffer) {
-    switch(request->type){
+    switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
+            if(request->argc==1){
+                add_client(request->args[0]);
+            }
             break;
         case ADD_SHOWCASE:
+            if(request->argc==3){
+                add_showcase(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
+            }
             break;
         case ADD_BOOKING:
             break;
