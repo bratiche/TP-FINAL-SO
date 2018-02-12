@@ -6,40 +6,12 @@
 #include "../common/utils.h"
 #include "../common/protocol.h"
 
-#define ARGS_BLOCK  50   // length of the arguments string
-
 extern bool debug;
 
-Response * new_response() {
-    Response * ret = malloc(sizeof(*ret));
-    if (ret == NULL) {
-        return NULL;
-    }
-
-    ret->status = RESPONSE_OK;
-    ret->argc = 0;
-    ret->args = calloc(ARGS_BLOCK, sizeof(char));
-    if (ret->args == NULL) {
-        free(ret);
-        return NULL;
-    }
-
-    return ret;
-}
-
-void destroy_response(Response * response) {
-    free(response->args);
-    free(response);
-}
-
-void response_parser_init(ResponseParser * parser) {
+void response_parser_init(ResponseParser * parser, Response * response) {
     const ParserDefinition *definition = multiline_parser_definition();
     parser->multiline_parser = parser_init(parser_no_classes(), definition);
-    parser->response = new_response();
-    if (parser->response == NULL) {
-        parser_destroy(parser->multiline_parser);
-        // ERROR
-    }
+    parser->response = response;
     parser->args_size = 0;
     parser->state = response_status;
 }
@@ -153,13 +125,6 @@ bool response_parser_is_done(ResponseParser * parser, bool *error) {
     return parser->state >= response_done;
 }
 
-
-/** Serializes the response into the buffer */
-void response_parser_marshall(Response * response, char * buffer) {
-
-}
-
 void response_parser_destroy(ResponseParser * parser) {
     parser_destroy(parser->multiline_parser);
-    destroy_response(parser->response);
 }
