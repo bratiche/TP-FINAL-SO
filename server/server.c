@@ -168,16 +168,25 @@ ssize_t server_read_request(Server server, ClientData * data) {
     return n;
 }
 
+bool check_response_end(char * buffer) {
+    size_t size = strlen(buffer);
+    return size >= 3 && strcmp(&buffer[size - 3], "\n.\n") == 0;
+}
+
 ssize_t server_send_response(Server server, ClientData * data) {
     int client_fd = data->client_fd;
     char * buffer = data->buffer;
     ssize_t n;
 
-    bzero(buffer, BUFFER_SIZE);
-    n = read(server->database_out, buffer, BUFFER_SIZE);
-    if (n > 0) { //todo hay que checkear que la respuesta haya terminado
-        n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);
-    }
+    bool done = false;
+    do {
+        bzero(buffer, BUFFER_SIZE);
+        n = read(server->database_out, buffer, BUFFER_SIZE);
+        done = check_response_end(buffer);
+        if (n > 0) { 
+            n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);
+        }
+    } while(n > 0 && !done);
 
     sem_post(&server->semaphore);
     return n;
