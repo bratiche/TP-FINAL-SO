@@ -18,8 +18,8 @@ typedef enum {
 
     ADD_CLIENT,             // name                 ok
 
-    ADD_SHOWCASE,           // showcase             ok o err
-    REMOVE_SHOWCASE,        // showcase             ok o err
+    ADD_SHOWCASE,           // movie, day, room     ok o err
+    REMOVE_SHOWCASE,        // movie, day, room     ok o err
 
     GET_MOVIES,             // -                    lista de peliculas (strings)
     GET_SHOWCASES,          // nombre de pelicula   lista de showcases (movie, day, room)
@@ -35,6 +35,7 @@ typedef enum {
 } request_cmd;
 
 /**
+ * TODO definir codigos de error
  * Posibles estados de la respuesta
  */
 typedef enum {
