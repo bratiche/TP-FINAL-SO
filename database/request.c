@@ -32,6 +32,7 @@ Request * new_request(void) {
 
 void process_request(Request * request, char * buffer) {
     int cache;
+    int seats[40]={0};
     switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
             if(request->argc==1){
@@ -48,18 +49,25 @@ void process_request(Request * request, char * buffer) {
             printf("%d\n",cache);
             break;
         case GET_MOVIES:
+            show_movies();
             break;
         case GET_SEATS:
+            show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
+            for(int i;i<SEATS;i++){
+                printf("%d\n",seats[i]);
+            }
             break;
         case GET_SHOWCASES:
+            cache=show_showcases();
             break;
         case SHOW_BOOKING:
-            cache=show_client_booking(request->args[0],NULL);
-            printf("%d\n",cache);
+            cache=show_client_booking(request->args[0]);
             break;
         case SHOW_CANCELLED:
+            cache=show_client_cancelled(request->args[0]);
             break;
         case REMOVE_BOOKING:
+            cache=cancel_booking(request->args[0],atoi(request->args[1]),atoi(request->args[2]),request->args[3],atoi(request->args[4]));
             break;
         case REMOVE_SHOWCASE:
             break;
