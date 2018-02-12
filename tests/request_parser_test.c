@@ -1,5 +1,6 @@
 
-#include "../database/request.h"
+#include <assert.h>
+#include "../database/request_parser.h"
 
 void parse(char * buffer);
 
@@ -15,7 +16,11 @@ void request_parser_test() {
 }
 
 void parse(char * buffer) {
-    Request * request = parse_request(buffer);
-    print_request(request);
-    destroy_request(request);
+    RequestParser parser;
+
+    request_parser_init(&parser);
+    request_parser_consume(&parser, buffer);
+    assert(request_parser_is_done(&parser, 0) == true);
+    print_request(parser.request);
+    request_parser_destroy(&parser);
 }

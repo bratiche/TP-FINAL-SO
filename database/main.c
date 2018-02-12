@@ -3,6 +3,7 @@
 #include <memory.h>
 #include "db_functions.h"
 #include "request.h"
+#include "request_parser.h"
 
 #define BUFFER_SIZE 4096
 
@@ -22,17 +23,21 @@ int main(int argc, char const *argv[]) {
     ssize_t n;
 
     do {
-        bzero(buffer, BUFFER_SIZE);
-        n = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+        RequestParser parser;
+        request_parser_init(&parser);
+        bool done = false;
+        do {
+            bzero(buffer, BUFFER_SIZE);
+            n = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+            if (n > 0) {
+                request_parser_consume(&parser, buffer);
+                done = request_parser_is_done(&parser, 0);
+            }
+        } while(n > 0 && !done);
 
-        Request * request = parse_request(buffer);
-        print_request(request);
-        process_request(request, buffer);
-        destroy_request(request);
-
-        if (n > 0) {
-            write(STDOUT_FILENO, buffer, strlen(buffer));
-        }
+        print_request(parser.request);
+        process_request(parser.request, buffer);
+        request_parser_destroy(&parser);
     } while (n > 0);
 
     return 0;

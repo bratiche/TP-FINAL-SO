@@ -1,119 +1,125 @@
+#include <ctype.h>
 #include "request_parser.h"
+#include "../common/multiline_parser.h"
+#include "../common/utils.h"
 
-const char * request_event(enum request_event_type type) {
-    const char *ret = NULL;
-    switch(type) {
-        case REQUEST_CMD:
-            ret = "cmd(c)";
-            break;
-        case REQUEST_NEWARG:
-            ret = "newarg(c)";
-            break;
-        case REQUEST_ARG:
-            ret = "arg(c)";
-            break;
-        case REQUEST_WAIT:
-            ret = "wait()";
-            break;
-        case REQUEST_FIN:
-            ret = "fin()";
-            break;
+extern bool debug;
+
+void request_parser_init(RequestParser * parser) {
+    const ParserDefinition *definition = multiline_parser_definition();
+    parser->multiline_parser = parser_init(parser_no_classes(), definition);
+    parser->request = new_request();
+    if (parser->request == NULL) {
+        parser_destroy(parser->multiline_parser);
+        // ERROR
     }
+    parser->arg_index = 0;
+    parser->state = request_cmd;
+}
+
+request_state cmd(Request * request, char c) {
+    if (!isdigit(c)) {
+        return request_error_invalid_cmd;
+    }
+
+    request->type *= 10;
+    request->type += c - '0';
+    return request_cmd;
+}
+
+request_state arg(Request * request, char c, int j) {
+    request_state ret = request_args;
+    if (j >= ARG_SIZE - 1) {
+        ret = request_error_argument_too_long;
+    } else {
+        request->args[request->argc - 1][j] = c;
+    }
+
     return ret;
 }
 
-enum {
-    CMD,
-    NEWLINE,
-    ARG,
-    DOT,
-    FIN
-};
+request_state req_byte(RequestParser * parser, char c) {
+    request_state ret;
+    switch (parser->state) {
+        case request_cmd:
+            ret = cmd(parser->request, c);
+            break;
+        case request_args:
+            ret = arg(parser->request, c, parser->arg_index++);
+            break;
+        default:
+            ret = request_error;
+            break;
+    }
 
-///////////////////////////////////////////////////////////////////////////////
-// Declaración formal
-
-static void cmd(ParserEvent *ret, const uint8_t c) {
-    ret->type    = REQUEST_CMD;
-    ret->n       = 1;
-    ret->data[0] = c;
+    return ret;
 }
 
-static void wait(ParserEvent *ret, const uint8_t c) {
-    ret->type    = REQUEST_WAIT;
-    ret->n       = 0;
+request_state req_newline(RequestParser * parser, char c) {
+    parser->arg_index = 0;
+    parser->request->argc++;
+
+    request_state ret;
+    if (parser->request->argc > MAX_ARGS) {
+        ret = request_error_too_many_arguments;
+    } else {
+        ret = arg(parser->request, c, parser->arg_index++);
+    }
+
+    return ret;
 }
 
-static void new_arg(ParserEvent *ret, const uint8_t c) {
-    ret->type    = REQUEST_NEWARG;
-    ret->n       = 1;
-    ret->data[0] = c;
+request_state request_parser_feed(RequestParser * parser, char c) {
+    const ParserEvent *e = parser_feed(parser->multiline_parser, (uint8_t) c);
+    do {
+        if (debug) print_state("request", multiline_event, e);
+        switch (e->type) {
+            case MULTI_BYTE:
+                parser->state = req_byte(parser, e->data[0]);
+                break;
+            case MULTI_NEWLINE:
+                parser->state = req_newline(parser, e->data[0]);
+                break;
+            case MULTI_WAIT:
+                // nada por hacer mas que esperar
+                break;
+            case MULTI_FIN:
+                parser->state = request_done;
+                break;
+            default:
+                parser->state = request_error;
+                break;
+        }
+        e =  e->next;
+    } while (e != NULL && parser->state < request_done);
+
+    return parser->state;
 }
 
-static void arg(ParserEvent *ret, const uint8_t c) {
-    ret->type    = REQUEST_ARG;
-    ret->n       = 1;
-    ret->data[0] = c;
+request_state request_parser_consume(RequestParser * parser, char * buffer) {
+    request_state state = parser->state;
+
+    while (*buffer != 0) {
+        state = request_parser_feed(parser, *buffer++);
+        if (request_parser_is_done(parser, 0)) {
+            break;
+        }
+    }
+
+    return state;
 }
 
-static void dot(ParserEvent *ret, const uint8_t c) {
-    new_arg(ret, '.');
+bool request_parser_is_done(RequestParser * parser, bool *error) {
+    if (parser->state >= request_error && error != 0) {
+        *error = true;
+    }
+
+    return parser->state >= request_done;
 }
 
-static void fin(struct parser_event *ret, const uint8_t c) {
-    ret->type    = REQUEST_FIN;
-    ret->n       = 0;
+void request_parser_destroy(RequestParser * parser) {
+    parser_destroy(parser->multiline_parser);
+    destroy_request(parser->request);
 }
 
-static const ParserStateTransition ST_CMD[] = {
-    {.when = '\n',      .dest = NEWLINE,        .act1 = wait,},
-    {.when = ANY,       .dest = CMD,            .act1 = cmd  },
-};
 
-static const ParserStateTransition ST_NEWLINE[] = {
-    {.when = '.',       .dest = DOT,            .act1 = wait,},
-    {.when = ANY,       .dest = ARG,            .act1 = new_arg,},
-};
-
-static const ParserStateTransition ST_ARG[] = {
-    {.when = '\n',      .dest = NEWLINE,        .act1 = wait,},
-    {.when = ANY,       .dest = ARG,            .act1 = arg,},
-};
-
-static const ParserStateTransition ST_DOT[] = {
-    {.when = '\n',      .dest = FIN,            .act1 = fin,},
-    {.when = ANY,       .dest = ARG,            .act1 = dot, .act2 = arg},
-};
-
-static const ParserStateTransition ST_FIN[] = {
-    {.when = ANY,      .dest = FIN,             .act1 = fin,},
-};
-
-static const ParserStateTransition *states[] = {
-        ST_CMD,
-        ST_NEWLINE,
-        ST_ARG,
-        ST_DOT,
-        ST_FIN,
-};
-
-#define N(x) (sizeof(x)/sizeof((x)[0]))
-
-static const size_t states_n [] = {
-        N(ST_CMD),
-        N(ST_NEWLINE),
-        N(ST_ARG),
-        N(ST_DOT),
-        N(ST_FIN),
-};
-
-static ParserDefinition definition = {
-        .states_count = N(states),
-        .states       = states,
-        .states_n     = states_n,
-        .start_state  = CMD,
-};
-
-const ParserDefinition * request_parser_definition(void) {
-    return &definition;
-}

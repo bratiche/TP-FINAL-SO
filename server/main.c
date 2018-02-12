@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <errno.h>
 #include "server.h"
+#include "../common/utils.h"
 
 /**
  * Multi-threaded concurrent server implementation
@@ -20,20 +21,6 @@ static void new_thread(ClientData * data);
 
 /** Single connection handler */
 static void * handle_connection(void* data);
-
-int parse_port(char *optarg) {
-    char *end = 0;
-    long sl   = strtol(optarg, &end, 10);
-
-    if (end == optarg|| '\0' != *end
-        || ((LONG_MIN == sl || LONG_MAX == sl) && ERANGE == errno)
-        || sl < 0 || sl > USHRT_MAX) {
-        fprintf(stderr, "port should be an integer: %s\n", optarg);
-        exit(1);
-    }
-
-    return (int) sl;
-}
 
 int main(int argc, char *argv[]) {
 

@@ -9,15 +9,16 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -lsqlite3 --std=c99 -pedantic -peda
 aux_source_directory(client CLIENT_SOURCE_FILES)
 aux_source_directory(server SERVER_SOURCE_FILES)
 aux_source_directory(database DB_SOURCE_FILES)
+aux_source_directory(common COMMON_SOURCE_FILES)
 aux_source_directory(tests TESTS_SOURCE_FILES)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-add_executable(client ${CLIENT_SOURCE_FILES})
-add_executable(server ${SERVER_SOURCE_FILES})
-add_executable(database ${DB_SOURCE_FILES})
-add_executable(tests ${TESTS_SOURCE_FILES} database/parser.c database/request.c database/request_parser.c
-                                           database/parser.h database/request.h database/request_parser.h)
+add_executable(client ${CLIENT_SOURCE_FILES} ${COMMON_SOURCE_FILES})
+add_executable(server ${SERVER_SOURCE_FILES} ${COMMON_SOURCE_FILES})
+add_executable(database ${DB_SOURCE_FILES} ${COMMON_SOURCE_FILES})
+add_executable(tests ${TESTS_SOURCE_FILES} ${COMMON_SOURCE_FILES} database/request.c database/request.h database/request_parser.c database/request_parser.h
+                                                                  client/response_parser.c client/response_parser.h)
 
 find_package (sqlite3)
 if (SQLITE3_FOUND)

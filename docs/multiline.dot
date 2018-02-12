@@ -1,0 +1,20 @@
+digraph g {
+    rankdir=LR;
+    size= "8.27,11.69";
+    ratio="compress"
+    center="true"
+
+    BYTE    -> BYTE     [label="ANY\nbyte(c)"]
+    BYTE    -> NEWLINE  [label="'\\n'\nwait()"]
+
+    NEWLINE             [label="NEW\nLINE"]
+
+    NEWLINE -> NEWLINE  [label="'\\n'\nwait()"]
+    NEWLINE -> DOT      [label="'.'\nwait()"]
+    NEWLINE -> BYTE     [label="ANY\nnewline(c)"]
+
+    DOT     -> BYTE     [label="ANY\ndot(.)\nbyte(c)"]
+    DOT     -> FIN      [label="'\\n'\nfin()"]
+
+    FIN                 [shape=doublecircle]
+}
