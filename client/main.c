@@ -5,11 +5,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
-#include <errno.h>
-
 #include "getnum.h"
 #include "client.h"
+#include "../common/utils.h"
 
 #define CLEAR_BUFFER        while (getchar() != '\n')
 
@@ -185,20 +183,6 @@ void client_start(Client client) {
                 return;
         }
     }
-}
-
-int parse_port(char *optarg) {
-    char *end = 0;
-    long sl   = strtol(optarg, &end, 10);
-
-    if (end == optarg|| '\0' != *end
-        || ((LONG_MIN == sl || LONG_MAX == sl) && ERANGE == errno)
-        || sl < 0 || sl > USHRT_MAX) {
-        fprintf(stderr, "port should be an integer: %s\n", optarg);
-        exit(1);
-    }
-
-    return (int) sl;
 }
 
 int main(int argc, char*argv[]) {
