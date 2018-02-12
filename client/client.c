@@ -15,7 +15,6 @@
 /** Estructura cliente */
 struct client {
     int fd;
-    char * name;
 
     // informacion del server
     struct sockaddr_storage server_address;
@@ -102,11 +101,23 @@ int connect_to_server(Client client) {
 }
 
 ssize_t client_send(Client client, char * buff) {
-    return send(client->fd, buff, strlen(buff), MSG_NOSIGNAL);
+    ssize_t n = send(client->fd, buff, strlen(buff), MSG_NOSIGNAL);
+    if (n <= 0) {
+        fprintf(stderr, "Connection lost. Exiting\n");
+        client_close(client);
+        exit(-1);
+    }
+    return n;
 }
 
 ssize_t client_recv(Client client, char * buff) {
-    return recv(client->fd, buff, BUFFER_SIZE, 0);
+    ssize_t n = recv(client->fd, buff, BUFFER_SIZE, 0);
+    if (n <= 0) {
+        fprintf(stderr, "Connection lost. Exiting\n");
+        client_close(client);
+        exit(-1);
+    }
+    return n;
 }
 
 void client_close(Client client) {
