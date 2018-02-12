@@ -18,13 +18,11 @@ typedef enum{
         ALREADY_EXIST,
         FAIL_TO_OPEN,
         FAIL_QUERY,
+        BAD_BOOKING,
         BAD_CLIENT,
         BAD_SHOWCASE
 
 } return_type;
-
-int database_init();
-
 
 //TODO: AGREGADOS DE OTA
 int database_open();
@@ -33,12 +31,10 @@ int database_close();
 int add_client(char *name);
 int add_showcase(char *movie, int day, int room);
 
+int show_client_booking(char* name,char **str);
+
 int get_client_id(char *name);
-
-
-//TODO: DEFINE THIS PLZ
-int callback_retr_id(void *, int, char **, char **);
-int check_error(int, char *, sqlite3 *);
+int get_showcase_id(char *movie, int day, int room);
 
 
 

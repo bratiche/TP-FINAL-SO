@@ -31,6 +31,7 @@ Request * new_request(void) {
 }
 
 void process_request(Request * request, char * buffer) {
+    int cache;
     switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
             if(request->argc==1){
@@ -43,6 +44,8 @@ void process_request(Request * request, char * buffer) {
             }
             break;
         case ADD_BOOKING:
+            cache=add_booking(request->args[0],atoi(request->args[1]),atoi(request->args[2]),request->args[3],atoi(request->args[4]));
+            printf("%d\n",cache);
             break;
         case GET_MOVIES:
             break;
@@ -51,6 +54,8 @@ void process_request(Request * request, char * buffer) {
         case GET_SHOWCASES:
             break;
         case SHOW_BOOKING:
+            cache=show_client_booking(request->args[0],NULL);
+            printf("%d\n",cache);
             break;
         case SHOW_CANCELLED:
             break;

@@ -33,6 +33,7 @@ char * create_tables =
 char * filename = "cinema.db"; //TODO ELIMINAR
 sqlite3* db_fd;
 char* exec_error_msg="Modifica exec\n"; //todo despues tiene que ser NULL
+int callback_retr_id(void *data, int argc, char **argv, char **azColName);
 
 
 
@@ -80,10 +81,8 @@ int get_client_id(char *name) {
     int rc, client_id=INVALID_ID; //En caso que sean 0 tuplas retorna INVALID_ID
     char *client_query = malloc(MAX_QUERY_SIZE);
     sprintf(client_query, "SELECT id FROM client WHERE client.name = '%s'", name);
-    rc = sqlite3_exec(db_fd, client_query, callback_retr_id, &client_id, &exec_error_msg);
+    rc = sqlite3_exec(db_fd, client_query, NULL, &client_id, NULL);
     free(client_query);
-//    if (rc != SQLITE_OK)
-//        return FAIL_QUERY;
     return client_id;
 }
 
@@ -93,10 +92,10 @@ int get_showcase_id(char *movie, int day, int room) {
     sprintf(showcase_query,
             "SELECT id FROM showcase WHERE showcase.movie = '%s' AND showcase.room = %d AND showcase.day = %d", movie,
             room, day);
-    rc = sqlite3_exec(db_fd, showcase_query, callback_retr_id, &showcase_id, &exec_error_msg);
+    rc = sqlite3_exec(db_fd, showcase_query, NULL, &showcase_id, NULL);
     free(showcase_query);
-//    if (rc != SQLITE_OK)
-//        return FAIL_QUERY;
+    if (rc != SQLITE_OK)
+        return FAIL_QUERY;
     return showcase_id;
 }
 
