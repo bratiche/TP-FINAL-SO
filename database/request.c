@@ -64,7 +64,6 @@ void process_request(Request * request, char * buffer) {
         case REMOVE_SHOWCASE:
             break;
         default:
-            //TODO: when this s blow
             break; //remove it after
 
     }

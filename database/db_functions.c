@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <memory.h>
 
+int callback_dummy(void *data, int argc, char **argv, char **azColName) {
+    return 0;
+}
 
 char * create_tables =
         "CREATE TABLE IF NOT EXISTS client(\n"
@@ -30,7 +33,6 @@ char * create_tables =
                 "\tPRIMARY KEY (client_id, showcase_id, seat)\n"
                 ");";
 
-char * filename = "cinema.db"; //TODO ELIMINAR
 sqlite3* db_fd;
 char* exec_error_msg="Modifica exec\n"; //todo despues tiene que ser NULL
 int callback_retr_id(void *data, int argc, char **argv, char **azColName);
@@ -80,8 +82,8 @@ int add_showcase(char *movie, int day, int room) {
 int get_client_id(char *name) {
     int rc, client_id=INVALID_ID; //En caso que sean 0 tuplas retorna INVALID_ID
     char *client_query = malloc(MAX_QUERY_SIZE);
-    sprintf(client_query, "SELECT id FROM client WHERE client.name = '%s'", name);
-    rc = sqlite3_exec(db_fd, client_query, NULL, &client_id, NULL);
+    sprintf(client_query, "SELECT id FROM client WHERE name = '%s'", name);
+    rc = sqlite3_exec(db_fd, client_query, callback_retr_id, &client_id, NULL);
     free(client_query);
     return client_id;
 }
@@ -92,7 +94,7 @@ int get_showcase_id(char *movie, int day, int room) {
     sprintf(showcase_query,
             "SELECT id FROM showcase WHERE showcase.movie = '%s' AND showcase.room = %d AND showcase.day = %d", movie,
             room, day);
-    rc = sqlite3_exec(db_fd, showcase_query, NULL, &showcase_id, NULL);
+    rc = sqlite3_exec(db_fd, showcase_query, callback_retr_id, &showcase_id, NULL);
     free(showcase_query);
     if (rc != SQLITE_OK)
         return FAIL_QUERY;
@@ -110,10 +112,11 @@ int show_client_booking(char* name,char **str){
     char* showq=malloc(MAX_QUERY_SIZE);
     sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id WHERE client_id = %d AND cancelled = 0",client_id);
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
+    free(showq);
     if (rc != SQLITE_OK)
         return FAIL_QUERY;
 
-    char *response=calloc(STR_BLOCK_SIZE,0);
+//    char *response=calloc(STR_BLOCK_SIZE,0);
     int rowCount = 0;
     rc = sqlite3_step(stmt);
     while (rc != SQLITE_DONE && rc != SQLITE_OK)
@@ -132,7 +135,44 @@ int show_client_booking(char* name,char **str){
     }
 
     sqlite3_finalize(stmt);
-    *str=response;
+//    *str=response;
+    return OK;
+}
+
+int show_client_cancelled(char* name,char **str){
+    const unsigned char * textCol=0;
+    sqlite3_stmt *stmt = NULL;
+    int client_id = get_client_id(name);
+    if (client_id == INVALID_ID) {
+        return BAD_CLIENT;
+    }
+    char* showq=malloc(MAX_QUERY_SIZE);
+    sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id WHERE client_id = %d AND cancelled = 1",client_id);
+    int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
+    free(showq);
+    if (rc != SQLITE_OK)
+        return FAIL_QUERY;
+
+//    char *response=calloc(STR_BLOCK_SIZE,0);
+    int rowCount = 0;
+    rc = sqlite3_step(stmt);
+    while (rc != SQLITE_DONE && rc != SQLITE_OK)
+    {
+        rowCount++;
+        int colCount = sqlite3_column_count(stmt);
+        for (int colIndex = 0; colIndex < colCount; colIndex++)
+        {
+            int type = sqlite3_column_type(stmt, colIndex);
+            const char * columnName = sqlite3_column_name(stmt, colIndex);
+            textCol = sqlite3_column_text(stmt, colIndex);
+            printf("%s\n",textCol); //TODO ELIMINAR
+        }
+        //TODO RETORNAR RESPONSE
+        rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+//    *str=response;
     return OK;
 }
 
@@ -151,14 +191,10 @@ int show_seats(char *movie, int day, int room, int** rseats){
         if(client_id==INVALID_ID){
             seats[i]=1;
         }
-    }
+}
     *rseats=seats;
     return OK;
 }
-
-
-//TODO que es consult?
-//int *consult(char *movie, int day, int room);
 
 int add_booking(char *movie, int day, int room, char *name, int seat) {
     char *err_msg = ERR_MSG;
@@ -215,12 +251,12 @@ int cancel_booking(char *movie, int day, int room, char *name, int seat) {
 
 int callback_retr_id(void *data, int argc, char **argv, char **azColName) {
 
-    for (int i = 0; i < argc; i++) {
-
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-
-    printf("\n");
+//    for (int i = 0; i < argc; i++) {
+//
+//        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+//    }
+//
+//    printf("\n");
 
     int *ptr = (int *) data;
     *ptr = atoi(argv[0]);

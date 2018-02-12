@@ -32,6 +32,7 @@ int add_client(char *name);
 int add_showcase(char *movie, int day, int room);
 
 int show_client_booking(char* name,char **str);
+int show_client_cancelled(char* name,char **str);
 
 int get_client_id(char *name);
 int get_showcase_id(char *movie, int day, int room);

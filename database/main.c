@@ -12,7 +12,8 @@ int main(int argc, char const *argv[]) {
 
     char buffer[BUFFER_SIZE];
     ssize_t n;
-
+    int cache=get_client_id("MATIAS");
+    printf("%d\n",cache);
     do {
         RequestParser parser;
         request_parser_init(&parser);
