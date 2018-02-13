@@ -49,50 +49,50 @@ void process_request(int state, Request * request, char * buffer) {
 //    write(STDOUT_FILENO, buffer, strlen(buffer));
 
     int cache;
-    int seats[40]={0};
     switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
             cache=add_client(request->args[0]);
             printf("%d\n", cache);
+            fflush(stdout);
             break;
         case ADD_SHOWCASE:
             cache=add_showcase(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
             printf("%d\n", cache);
+            fflush(stdout);
             break;
         case ADD_BOOKING:
             cache=add_booking(request->args[0],atoi(request->args[1]),atoi(request->args[2]),request->args[3],atoi(request->args[4]));
             printf("%d\n",cache);
+            fflush(stdout);
             break;
         case GET_MOVIES:
             printf("%d\n",OK);
+            fflush(stdout);
             cache=show_movies();
             break;
         case GET_SEATS:
-            printf("%d\n",OK);
             cache=show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
-            for(int i;i<SEATS;i++){
-                printf("%d\n",seats[i]);
-            }
             break;
         case GET_SHOWCASES:
             printf("%d\n",0);
+            fflush(stdout);
             cache=show_showcases();
             break;
         case SHOW_BOOKING:
-            printf("%d\n",OK);
             cache=show_client_booking(request->args[0]);
             break;
         case SHOW_CANCELLED:
-            printf("%d\n",OK);
             cache=show_client_cancelled(request->args[0]);
             break;
         case REMOVE_BOOKING:
             cache=cancel_booking(request->args[0],atoi(request->args[1]),atoi(request->args[2]),request->args[3],atoi(request->args[4]));
             printf("%d\n",cache);
+            fflush(stdout);
             break;
         case REMOVE_SHOWCASE:
             cache=remove_showcase(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
             printf("%d\n",cache);
+            fflush(stdout);
             break;
         default:
             break; //remove it after
