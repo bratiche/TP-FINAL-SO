@@ -8,12 +8,10 @@
 #define BUFFER_SIZE 4096
 
 int main(int argc, char const *argv[]) {
-    database_open(); //TODO VERIFICAR SI SE ROMPE
+
 
     char buffer[BUFFER_SIZE];
     ssize_t n;
-    int cache=get_client_id("MATIAS");
-    printf("%d\n",cache);
     do {
         RequestParser parser;
         request_parser_init(&parser);
@@ -31,6 +29,6 @@ int main(int argc, char const *argv[]) {
         request_parser_destroy(&parser);
     } while (n > 0);
 
-    database_close();
+
     return 0;
 }

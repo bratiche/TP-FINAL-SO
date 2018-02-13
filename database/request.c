@@ -41,6 +41,7 @@ void process_request(int state, Request * request, char * buffer) {
         write(STDOUT_FILENO, buffer, strlen(buffer));
         return;
     }
+    database_open();
 
     print_request(request);
 
@@ -101,6 +102,7 @@ void process_request(int state, Request * request, char * buffer) {
 
 
     write(STDOUT_FILENO, ".\n", strlen(buffer));
+    database_close();
 }
 
 char * get_cmd(int type) {
