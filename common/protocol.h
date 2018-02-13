@@ -41,6 +41,6 @@ typedef enum {
 typedef enum {
     RESPONSE_OK = 0,
     RESPONSE_ERR,
-} status;
+} response_type;
 
 #endif //TPE_FINAL_SO_PROTOCOL_H
