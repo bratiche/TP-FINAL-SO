@@ -1,4 +1,3 @@
-#include <stdarg.h>
 /*
 ** Funciones para leer desde la entrada estandar un numero.
 ** Reciben como parametro una cadena de caracteres, la cual puede
@@ -9,11 +8,10 @@
 ** Si se ingresa un numero seguido de otros caracteres,
 ** devolveran el numero ignorando el resto de los caracteres
 */
-
-
 #ifndef _getnum_h
-
 #define _getnum_h
+
+#include <stdarg.h>
 
 /* funcion que lee de la entrada estandar un numero entero
 ** Modo de uso: n = getint("Ingrese un numero entre %d y %d: ", 0, 10);

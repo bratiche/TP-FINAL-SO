@@ -32,7 +32,7 @@ typedef enum {
     SHOW_BOOKING,           // usuario              lista de reservados (movie, day, room, seat)
     SHOW_CANCELLED,         // usuario              lista de cancelados (movie, day, room, seat)
 
-} request_cmd;
+} request_type;
 
 /**
  * TODO definir codigos de error

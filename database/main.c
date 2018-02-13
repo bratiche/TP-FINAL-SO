@@ -27,8 +27,7 @@ int main(int argc, char const *argv[]) {
             }
         } while(n > 0 && !done);
 
-        print_request(parser.request);
-        process_request(parser.request, buffer);
+        process_request(parser.state, parser.request, buffer);
         request_parser_destroy(&parser);
     } while (n > 0);
 

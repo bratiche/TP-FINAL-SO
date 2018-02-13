@@ -11,14 +11,9 @@ typedef struct {
 } Request;
 
 
-typedef enum {
-    REQ_OK,
-    REQ_BAD
-} request_ret;
-
 Request * new_request(void);
 
-void process_request(Request * request, char * buffer);
+void process_request(int state, Request * request, char * buffer);
 
 void print_request(Request * request);
 

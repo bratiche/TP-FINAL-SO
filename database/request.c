@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <string.h>
 #include "request.h"
 #include "../common/protocol.h"
 #include "db_functions.h"
+#include "request_parser.h"
 
 extern bool debug;
 
@@ -30,7 +33,17 @@ Request * new_request(void) {
     return request;
 }
 
-void process_request(Request * request, char * buffer) {
+void process_request(int state, Request * request, char * buffer) {
+
+    if (state != request_done) {
+        // send error
+        sprintf(buffer, "%d\n.\n", RESPONSE_ERR);
+        write(STDOUT_FILENO, buffer, strlen(buffer));
+        return;
+    }
+
+    print_request(request);
+
     int cache;
     switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
@@ -67,6 +80,10 @@ void process_request(Request * request, char * buffer) {
             break; //remove it after
 
     }
+
+    // send_ok
+    sprintf(buffer, "%d\n.\n", RESPONSE_OK);
+    write(STDOUT_FILENO, buffer, strlen(buffer));
 }
 
 char * get_cmd(int type) {
