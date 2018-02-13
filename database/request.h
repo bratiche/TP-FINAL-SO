@@ -14,7 +14,6 @@ typedef struct {
 Request * new_request(void);
 
 void process_request(int state, Request * request, char * buffer);
-
 void print_request(Request * request);
 
 void destroy_request(Request * request);
