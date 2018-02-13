@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
+#include <syslog.h>
 #include "request.h"
 #include "../common/protocol.h"
 #include "db_functions.h"
@@ -33,20 +32,19 @@ Request * new_request(void) {
     return request;
 }
 
-void process_request(int state, Request * request, char * buffer) {
+void log_request(Request * request);
+
+void process_request(int state, Request * request) {
 
     if (state != request_done) {
         // send error
-        sprintf(buffer, "%d\n.\n", RESPONSE_ERR);
-        write(STDOUT_FILENO, buffer, strlen(buffer));
+        printf("%d\n.\n", RESPONSE_ERR);
+        fflush(stdout);
         return;
     }
+    log_request(request);
     database_open();
 
-    print_request(request);
-
-//
-//    write(STDOUT_FILENO, buffer, strlen(buffer));
 
     int cache;
     int seats[40]={0};
@@ -78,11 +76,11 @@ void process_request(int state, Request * request, char * buffer) {
             printf("%d\n",0);
             cache=show_showcases();
             break;
-        case SHOW_BOOKING:
+        case GET_BOOKING:
             printf("%d\n",OK);
             cache=show_client_booking(request->args[0]);
             break;
-        case SHOW_CANCELLED:
+        case GET_CANCELLED:
             printf("%d\n",OK);
             cache=show_client_cancelled(request->args[0]);
             break;
@@ -98,10 +96,9 @@ void process_request(int state, Request * request, char * buffer) {
             break; //remove it after
 
     }
-    // send_ok
 
-
-    write(STDOUT_FILENO, ".\n", strlen(buffer));
+    printf(".\n");
+    fflush(stdout);     // la magia
     database_close();
 }
 
@@ -109,34 +106,34 @@ char * get_cmd(int type) {
     char * ret;
     switch(type) {
         case ADD_CLIENT:
-            ret = "add client";
+            ret = "ADD_CLIENT";
             break;
         case ADD_SHOWCASE:
-            ret = "add showcase";
+            ret = "ADD_SHOWCASE";
             break;
         case ADD_BOOKING:
-            ret = "add booking";
+            ret = "ADD_BOOKING";
             break;
         case REMOVE_SHOWCASE:
-            ret = "remove showcase";
+            ret = "REMOVE_SHOWCASE";
             break;
         case REMOVE_BOOKING:
-            ret = "remove booking";
+            ret = "REMOVE_BOOKING";
             break;
-        case SHOW_BOOKING:
-            ret = "show booking";
+        case GET_BOOKING:
+            ret = "GET_BOOKING";
             break;
-        case SHOW_CANCELLED:
-            ret = "show cancelled";
+        case GET_CANCELLED:
+            ret = "GET_CANCELLED";
             break;
         case GET_SHOWCASES:
-            ret = "get showcases";
+            ret = "GET_SHOWCASES";
             break;
         case GET_MOVIES:
-            ret = "get movies";
+            ret = "GET_MOVIES";
             break;
         case GET_SEATS:
-            ret = "get seats";
+            ret = "GET_SEATS";
             break;
         default:
             ret = "UNKNOWN COMMAND";
@@ -153,6 +150,23 @@ void print_request(Request * request) {
         printf("argv[%d]:%s\n", i, request->args[i]);
     }
 
+}
+
+//TODO log queries
+void log_request(Request * request) {
+    char buffer[BUFFER_SIZE];
+    char * aux = buffer;
+    aux += sprintf(aux, "%s(", get_cmd(request->type));
+
+    for (int i = 0; i < request->argc; i++) {
+        aux += sprintf(aux, "%s", request->args[i]);
+        if (i < request->argc -1) {
+            aux += sprintf(aux, ",");
+        }
+    }
+
+    sprintf(aux, ")");
+    syslog(LOG_DEBUG, "[DATABASE] request %s", buffer);
 }
 
 void destroy_request(Request * request) {

@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]) {
             }
         } while(n > 0 && !done);
 
-        process_request(parser.state, parser.request, buffer);
+        process_request(parser.state, parser.request);
         request_parser_destroy(&parser);
     } while (n > 0);
 
