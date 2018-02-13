@@ -4,6 +4,8 @@
 #define MAX_ARGS    5
 #define ARG_SIZE    50
 
+#define BUFFER_SIZE 4096
+
 typedef struct {
     int type;
     int argc;

@@ -5,8 +5,6 @@
 #include "request.h"
 #include "request_parser.h"
 
-#define BUFFER_SIZE 4096
-
 int main(int argc, char const *argv[]) {
 
 
