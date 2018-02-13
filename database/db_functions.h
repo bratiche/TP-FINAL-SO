@@ -24,12 +24,12 @@ typedef enum{
 
 } return_type;
 
-//TODO: AGREGADOS DE OTA
 int database_open();
 int database_close();
 
 int add_client(char *name);
 int add_showcase(char *movie, int day, int room);
+int remove_showcase(char *movie, int day, int room);
 
 int show_client_booking(char* name);
 int show_client_cancelled(char* name);

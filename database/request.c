@@ -90,6 +90,8 @@ void process_request(int state, Request * request, char * buffer) {
             printf("%d\n",cache);
             break;
         case REMOVE_SHOWCASE:
+            cache=remove_showcase(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
+            printf("%d\n",cache);
             break;
         default:
             break; //remove it after

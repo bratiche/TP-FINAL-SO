@@ -83,6 +83,25 @@ int add_showcase(char *movie, int day, int room) {
     return OK;
 }
 
+int remove_showcase(char *movie, int day, int room) {
+    int showcase_id=get_showcase_id(movie,day,room);
+    if(showcase_id==INVALID_ID)
+        return BAD_SHOWCASE;
+    char *insert_query = malloc(MAX_QUERY_SIZE);
+    sprintf(insert_query, "DELETE FROM booking WHERE showcase_id = %d", showcase_id);
+    int rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
+    free(insert_query);
+    if(rc!=SQLITE_OK)
+        return FAIL_QUERY;
+    insert_query = malloc(MAX_QUERY_SIZE);
+    sprintf(insert_query, "DELETE FROM showcase WHERE movie='%s' AND day=%d AND room=%d", movie,day,room);
+    rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
+    free(insert_query);
+    if(rc!=SQLITE_OK)
+        return FAIL_QUERY;
+    return OK;
+}
+
 int get_client_id(char *name) {
     int rc, client_id=INVALID_ID; //En caso que sean 0 tuplas retorna INVALID_ID
     char *client_query = malloc(MAX_QUERY_SIZE);
@@ -261,7 +280,6 @@ int cancel_booking(char *movie, int day, int room, char *name, int seat) {
     return OK;
 
 }
-
 
 int callback_retr_id(void *data, int argc, char **argv, char **azColName) {
     int *ptr = (int *) data;
