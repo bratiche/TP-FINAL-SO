@@ -29,8 +29,8 @@ typedef enum {
     ADD_BOOKING,            // usuario, movie, day, room, seat      ok o err
     REMOVE_BOOKING,         // usuario, movie, day, room, seat      ok o err
 
-    SHOW_BOOKING,           // usuario              lista de reservados (movie, day, room, seat)
-    SHOW_CANCELLED,         // usuario              lista de cancelados (movie, day, room, seat)
+    GET_BOOKING,            // usuario               lista de reservados (movie, day, room, seat)
+    GET_CANCELLED,          // usuario               lista de cancelados (movie, day, room, seat)
 
 } request_type;
 
