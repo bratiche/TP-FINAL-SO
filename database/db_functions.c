@@ -58,7 +58,9 @@ int database_close(){
 }
 
 int add_client(char *name){
-    //TODO VERIFICAR SI EXISTE EL CLIENTE
+    int client_id=get_client_id(name);
+    if(client_id!=INVALID_ID)
+        return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
     sprintf(insert_query, "INSERT INTO client(name) VALUES('%s')", name);
     int rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
@@ -69,7 +71,9 @@ int add_client(char *name){
 }
 
 int add_showcase(char *movie, int day, int room) {
-    //TODO VERIFICAR SI EXISTE EL SHOWCASE
+    int showcase_id=get_showcase_id(movie,day,room);
+    if(showcase_id!=INVALID_ID)
+        return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
     sprintf(insert_query, "INSERT INTO showcase(movie,day,room) VALUES('%s',%d,%d)", movie,day,room);
     int rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
@@ -101,8 +105,52 @@ int get_showcase_id(char *movie, int day, int room) {
     return showcase_id;
 }
 
+int print_cols(int rc,sqlite3_stmt *stmt){
 
-int show_client_booking(char* name,char **str){
+    int rowCount = 0;
+    const unsigned char * textCol=0;
+    rc = sqlite3_step(stmt);
+    while (rc != SQLITE_DONE && rc != SQLITE_OK)
+    {
+        rowCount++;
+        int colCount = sqlite3_column_count(stmt);
+        for (int colIndex = 0; colIndex < colCount; colIndex++)
+        {
+            int type = sqlite3_column_type(stmt, colIndex);
+            const char * columnName = sqlite3_column_name(stmt, colIndex);
+            textCol = sqlite3_column_text(stmt, colIndex);
+            printf("%s\n",textCol);
+        }
+        rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    return OK;
+}
+
+int show_movies(){
+    sqlite3_stmt *stmt = NULL;
+    char* showq=malloc(MAX_QUERY_SIZE);
+    sprintf(showq,"SELECT DISTINCT movie FROM showcase");
+    int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
+    free(showq);
+    if (rc != SQLITE_OK)
+        return FAIL_QUERY;
+    print_cols(rc,stmt);
+}
+
+int show_showcases(){
+    sqlite3_stmt *stmt = NULL;
+    char* showq=malloc(MAX_QUERY_SIZE);
+    sprintf(showq,"SELECT DISTINCT movie,day,room FROM showcase");
+    int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
+    free(showq);
+    if (rc != SQLITE_OK)
+        return FAIL_QUERY;
+    print_cols(rc,stmt);
+}
+
+int show_client_booking(char* name){
     const unsigned char * textCol=0;
     sqlite3_stmt *stmt = NULL;
     int client_id = get_client_id(name);
@@ -116,30 +164,11 @@ int show_client_booking(char* name,char **str){
     if (rc != SQLITE_OK)
         return FAIL_QUERY;
 
-//    char *response=calloc(STR_BLOCK_SIZE,0);
-    int rowCount = 0;
-    rc = sqlite3_step(stmt);
-    while (rc != SQLITE_DONE && rc != SQLITE_OK)
-    {
-        rowCount++;
-        int colCount = sqlite3_column_count(stmt);
-        for (int colIndex = 0; colIndex < colCount; colIndex++)
-        {
-            int type = sqlite3_column_type(stmt, colIndex);
-            const char * columnName = sqlite3_column_name(stmt, colIndex);
-            textCol = sqlite3_column_text(stmt, colIndex);
-            printf("%s\n",textCol); //TODO ELIMINAR
-        }
-        //TODO RETORNAR RESPONSE
-        rc = sqlite3_step(stmt);
-    }
-
-    sqlite3_finalize(stmt);
-//    *str=response;
+    print_cols(rc,stmt);
     return OK;
 }
 
-int show_client_cancelled(char* name,char **str){
+int show_client_cancelled(char* name){
     const unsigned char * textCol=0;
     sqlite3_stmt *stmt = NULL;
     int client_id = get_client_id(name);
@@ -152,47 +181,27 @@ int show_client_cancelled(char* name,char **str){
     free(showq);
     if (rc != SQLITE_OK)
         return FAIL_QUERY;
-
-//    char *response=calloc(STR_BLOCK_SIZE,0);
-    int rowCount = 0;
-    rc = sqlite3_step(stmt);
-    while (rc != SQLITE_DONE && rc != SQLITE_OK)
-    {
-        rowCount++;
-        int colCount = sqlite3_column_count(stmt);
-        for (int colIndex = 0; colIndex < colCount; colIndex++)
-        {
-            int type = sqlite3_column_type(stmt, colIndex);
-            const char * columnName = sqlite3_column_name(stmt, colIndex);
-            textCol = sqlite3_column_text(stmt, colIndex);
-            printf("%s\n",textCol); //TODO ELIMINAR
-        }
-        //TODO RETORNAR RESPONSE
-        rc = sqlite3_step(stmt);
-    }
-
-    sqlite3_finalize(stmt);
-//    *str=response;
+    print_cols(rc,stmt);
     return OK;
 }
 
-int show_seats(char *movie, int day, int room, int** rseats){
+int show_seats(char *movie, int day, int room){
     int rc,show_id=get_showcase_id(movie,day,room);
     if(show_id == INVALID_ID) {
         return BAD_SHOWCASE;
     }
-    int* seats=calloc(SEATS* sizeof(int),0); //TODO MAL
     for(int i=0;i<SEATS;i++){
         int client_id=INVALID_ID;
         char *showb_query=malloc(MAX_QUERY_SIZE);
         sprintf(showb_query,"SELECT client_id FROM booking WHERE showcase_id = %d AND seat = %d AND cancelled = 0",show_id,i);
-        rc = sqlite3_exec(db_fd,showb_query,NULL,&client_id,&exec_error_msg);
+        rc = sqlite3_exec(db_fd,showb_query,callback_retr_id,&client_id,&exec_error_msg);
         free(showb_query);
         if(client_id==INVALID_ID){
-            seats[i]=1;
+            printf("1\n");
+        }else{
+            printf("0\n");
         }
 }
-    *rseats=seats;
     return OK;
 }
 
@@ -210,10 +219,15 @@ int add_booking(char *movie, int day, int room, char *name, int seat) {
     if (showcase_id == INVALID_ID) {
         return BAD_SHOWCASE;
     }
-
-
+    int exist=INVALID_ID; //En caso que sean 0 tuplas retorna INVALID_ID
+    char *client_query = malloc(MAX_QUERY_SIZE);
+    sprintf(client_query, "SELECT 1 FROM booking WHERE client_id = %d AND showcase_id = %d AND seat = %d", client_id,showcase_id,seat);
+    rc = sqlite3_exec(db_fd, client_query, callback_retr_id, &exist, NULL);
+    free(client_query);
+    if(exist==1)
+        return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
-    //TODO Add logic to not insert if it already exists
+
     sprintf(insert_query, "INSERT INTO booking VALUES(%d, %d, 0, %d)", client_id, showcase_id, seat);
     rc = sqlite3_exec(db_fd, insert_query, NULL, NULL, NULL);
     free(insert_query);
@@ -250,14 +264,6 @@ int cancel_booking(char *movie, int day, int room, char *name, int seat) {
 
 
 int callback_retr_id(void *data, int argc, char **argv, char **azColName) {
-
-//    for (int i = 0; i < argc; i++) {
-//
-//        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-//    }
-//
-//    printf("\n");
-
     int *ptr = (int *) data;
     *ptr = atoi(argv[0]);
     return 0;
