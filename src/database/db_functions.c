@@ -185,7 +185,7 @@ int show_showcases(){
 int show_showcases_by_movie(char* movie){
     sqlite3_stmt *stmt = NULL;
     char* showq=malloc(MAX_QUERY_SIZE);
-    sprintf(showq,"SELECT DISTINCT movie,day,room FROM showcase WHERE movie=%s",movie);
+    sprintf(showq,"SELECT DISTINCT movie,day,room FROM showcase WHERE movie='%s'",movie);
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
     if (rc != SQLITE_OK) {
