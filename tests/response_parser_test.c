@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "response_parser_test.h"
-#include "../client/response_parser.h"
+#include "../src/client/response_parser.h"
 
 void parse2(char * buffer);
 

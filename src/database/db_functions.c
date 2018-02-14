@@ -1,5 +1,5 @@
 #include "db_functions.h"
-#include "../common/protocol.h"
+#include "../protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

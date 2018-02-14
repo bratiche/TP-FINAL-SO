@@ -9,8 +9,8 @@
 #include "getnum.h"
 #include "client.h"
 #include "response_parser.h"
-#include "../common/utils.h"
-#include "../common/protocol.h"
+#include "../utils.h"
+#include "../protocol.h"
 
 #define CLEAR_BUFFER        while (getchar() != '\n')
 

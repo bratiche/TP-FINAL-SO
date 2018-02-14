@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include "response.h"
-#include "../common/parser.h"
+#include "../parser.h"
 
 typedef enum {
     response_status,

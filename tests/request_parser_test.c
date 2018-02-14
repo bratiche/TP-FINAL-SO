@@ -1,6 +1,6 @@
 
 #include <assert.h>
-#include "../database/request_parser.h"
+#include "../src/database/request_parser.h"
 
 void parse(char * buffer);
 

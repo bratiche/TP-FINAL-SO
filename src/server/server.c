@@ -183,7 +183,7 @@ ssize_t server_send_response(Server server, ClientData * data) {
     do {
         bzero(buffer, BUFFER_SIZE);
         n = read(server->database_out, buffer, BUFFER_SIZE);
-        printf(buffer);
+        printf("%s", buffer);
         done = check_response_end(buffer);
         if (n > 0) { 
             n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);

@@ -1,7 +1,7 @@
 #ifndef TPE_FINAL_SO_RESPONSE_H
 #define TPE_FINAL_SO_RESPONSE_H
 
-#include "../common/list.h"
+#include "../list.h"
 
 typedef struct {
     int status;

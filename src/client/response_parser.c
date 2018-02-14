@@ -3,8 +3,8 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "response_parser.h"
-#include "../common/multiline_parser.h"
-#include "../common/utils.h"
+#include "../multiline_parser.h"
+#include "../utils.h"
 
 #define ARG_BLOCK   50
 

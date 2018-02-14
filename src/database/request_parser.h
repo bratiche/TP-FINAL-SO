@@ -2,7 +2,7 @@
 #define TPE_FINAL_SO_REQUEST_PARSER_H
 
 #include <stdbool.h>
-#include "../common/parser.h"
+#include "../parser.h"
 #include "request.h"
 
 typedef enum {

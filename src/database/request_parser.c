@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include "request_parser.h"
-#include "../common/multiline_parser.h"
-#include "../common/utils.h"
+#include "../multiline_parser.h"
+#include "../utils.h"
 
 extern bool debug;
 

@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <assert.h>
 #include "response.h"
-#include "../common/protocol.h"
+#include "../protocol.h"
 
 Response * new_response() {
     Response * ret = malloc(sizeof(*ret));

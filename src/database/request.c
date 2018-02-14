@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <syslog.h>
 #include "request.h"
-#include "../common/protocol.h"
+#include "../protocol.h"
 #include "db_functions.h"
 #include "request_parser.h"
 

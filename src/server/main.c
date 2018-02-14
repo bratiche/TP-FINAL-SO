@@ -6,7 +6,7 @@
 #include <limits.h>
 #include <errno.h>
 #include "server.h"
-#include "../common/utils.h"
+#include "../utils.h"
 
 /**
  * Multi-threaded concurrent server implementation
