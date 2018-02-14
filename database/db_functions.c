@@ -63,7 +63,7 @@ int database_close(){
 
 int add_client(char *name){
     int client_id=get_client_id(name);
-    if(client_id!=INVALID_ID)
+    if(client_id!=INVALID_ID || name[0]==0)
         return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
     sprintf(insert_query, "INSERT INTO client(name) VALUES('%s')", name);
@@ -76,7 +76,7 @@ int add_client(char *name){
 
 int add_showcase(char *movie, int day, int room) {
     int showcase_id=get_showcase_id(movie,day,room);
-    if(showcase_id!=INVALID_ID)
+    if(showcase_id!=INVALID_ID || movie[0]==0)
         return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
     sprintf(insert_query, "INSERT INTO showcase(movie,day,room) VALUES('%s',%d,%d)",
@@ -230,12 +230,9 @@ int show_seats(char *movie, int day, int room){
     if(show_id == INVALID_ID) {
         printf("%d\n",BAD_SHOWCASE);
         fflush(stdout);
-
         return BAD_SHOWCASE;
     }
     printf("%d\n",OK);
-    fflush(stdout);
-
     for(int i=0;i<SEATS;i++){
         int client_id=INVALID_ID;
         char *showb_query=malloc(MAX_QUERY_SIZE);
@@ -246,14 +243,11 @@ int show_seats(char *movie, int day, int room){
         free(showb_query);
         if(client_id==INVALID_ID){
             printf("1\n");
-            fflush(stdout);
-
         }else{
             printf("0\n");
-            fflush(stdout);
-
         }
     }
+    fflush(stdout);
     return OK;
 }
 

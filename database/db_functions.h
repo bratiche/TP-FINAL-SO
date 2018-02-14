@@ -20,7 +20,8 @@ typedef enum{
         FAIL_QUERY,
         BAD_BOOKING,
         BAD_CLIENT,
-        BAD_SHOWCASE
+        BAD_SHOWCASE,
+        BAD
 
 } return_type;
 
