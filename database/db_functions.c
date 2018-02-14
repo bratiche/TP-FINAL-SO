@@ -1,4 +1,5 @@
 #include "db_functions.h"
+#include "../common/protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,10 +7,6 @@
 
 int callback_dummy(void *data, int argc, char **argv, char **azColName) {
     return 0;
-}
-int prin_stout(char* str){
-    write(STDOUT_FILENO, str, strlen(str));
-    return OK;
 }
 
 char * create_tables =
@@ -53,12 +50,12 @@ int database_open(){
         if (sqlite3_exec(db_fd, create_tables, NULL, NULL, NULL) != SQLITE_OK)
             return FAIL_QUERY;
     }
-    return OK;
+    return RESPONSE_OK;
 }
 
 int database_close(){
     sqlite3_close(db_fd);
-    return OK;
+    return RESPONSE_OK;
 }
 
 int add_client(char *name){
@@ -71,7 +68,7 @@ int add_client(char *name){
     free(insert_query);
     if(rc!=SQLITE_OK)
         return FAIL_QUERY;
-    return OK;
+    return RESPONSE_OK;
 }
 
 int add_showcase(char *movie, int day, int room) {
@@ -85,7 +82,7 @@ int add_showcase(char *movie, int day, int room) {
     free(insert_query);
     if(rc!=SQLITE_OK)
         return FAIL_QUERY;
-    return OK;
+    return RESPONSE_OK;
 }
 
 int remove_showcase(char *movie, int day, int room) {
@@ -105,7 +102,7 @@ int remove_showcase(char *movie, int day, int room) {
     free(insert_query);
     if(rc!=SQLITE_OK)
         return FAIL_QUERY;
-    return OK;
+    return RESPONSE_OK;
 }
 
 int get_client_id(char *name) {
@@ -150,7 +147,7 @@ int print_cols(int rc,sqlite3_stmt *stmt){
     }
 
     sqlite3_finalize(stmt);
-    return OK;
+    return RESPONSE_OK;
 }
 
 int show_movies(){
@@ -184,7 +181,7 @@ int show_client_booking(char* name){
         fflush(stdout);
         return BAD_CLIENT;
     }
-    printf("%d\n",OK);
+    printf("%d\n", RESPONSE_OK);
     fflush(stdout);
 
     char* showq=malloc(MAX_QUERY_SIZE);
@@ -197,7 +194,7 @@ int show_client_booking(char* name){
         return FAIL_QUERY;
 
     print_cols(rc,stmt);
-    return OK;
+    return RESPONSE_OK;
 }
 
 int show_client_cancelled(char* name){
@@ -210,7 +207,7 @@ int show_client_cancelled(char* name){
 
         return BAD_CLIENT;
     }
-    printf("%d\n",OK);
+    printf("%d\n", RESPONSE_OK);
     fflush(stdout);
 
     char* showq=malloc(MAX_QUERY_SIZE);
@@ -222,7 +219,7 @@ int show_client_cancelled(char* name){
     if (rc != SQLITE_OK)
         return FAIL_QUERY;
     print_cols(rc,stmt);
-    return OK;
+    return RESPONSE_OK;
 }
 
 int show_seats(char *movie, int day, int room){
@@ -233,7 +230,7 @@ int show_seats(char *movie, int day, int room){
 
         return BAD_SHOWCASE;
     }
-    printf("%d\n",OK);
+    printf("%d\n", RESPONSE_OK);
     fflush(stdout);
 
     for(int i=0;i<SEATS;i++){
@@ -254,10 +251,10 @@ int show_seats(char *movie, int day, int room){
 
         }
     }
-    return OK;
+    return RESPONSE_OK;
 }
 
-int add_booking(char *movie, int day, int room, char *name, int seat) {
+int add_booking(char *name, char *movie, int day, int room, int seat) {
     char *err_msg = ERR_MSG;
     int rc;
     int client_id, showcase_id;
@@ -287,10 +284,10 @@ int add_booking(char *movie, int day, int room, char *name, int seat) {
     free(insert_query);
     if (rc != SQLITE_OK)
         return FAIL_QUERY;
-    return OK;
+    return RESPONSE_OK;
 }
 
-int cancel_booking(char *movie, int day, int room, char *name, int seat) {
+int cancel_booking(char *name, char *movie, int day, int room, int seat) {
     int client_id, showcase_id, rc;
 
     client_id = get_client_id(name);
@@ -312,7 +309,7 @@ int cancel_booking(char *movie, int day, int room, char *name, int seat) {
     if (rc != SQLITE_OK){
         return FAIL_QUERY;
     }
-    return OK;
+    return RESPONSE_OK;
 
 }
 

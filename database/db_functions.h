@@ -4,25 +4,11 @@
 #include <sqlite3.h>
 #include "stdbool.h"
 #define DB_FILENAME "cinema.db"
-#define SEATS 40
+
 #define ERR_MSG 0
 #define MAX_QUERY_SIZE 500
-#define STR_BLOCK_SIZE 100
 
-
-#define UNSPECIFIED_ERROR -1
 #define INVALID_ID -1
-
-typedef enum{
-        OK,
-        ALREADY_EXIST,
-        FAIL_TO_OPEN,
-        FAIL_QUERY,
-        BAD_BOOKING,
-        BAD_CLIENT,
-        BAD_SHOWCASE
-
-} return_type;
 
 int database_open();
 int database_close();
@@ -46,9 +32,9 @@ int get_showcase_id(char *movie, int day, int room);
 //int* consult(char* movie, int day, int sala);
 
 /*Saves booking info on database*/
-int add_booking(char *movie, int day, int sala, char *name, int seat);
+int add_booking(char *name, char *movie, int day, int sala, int seat);
 
 /*Cancels an existing booking*/
-int cancel_booking(char *movie, int day, int sala, char *name, int seat);
+int cancel_booking(char *name, char *movie, int day, int sala, int seat);
 
 #endif //TP_FINAL_SO_DB_FUNCTIONS_H

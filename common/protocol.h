@@ -1,6 +1,13 @@
 #ifndef TPE_FINAL_SO_PROTOCOL_H
 #define TPE_FINAL_SO_PROTOCOL_H
 
+#define ROWS        10
+#define COLS        4
+#define SEATS       ROWS * COLS
+
+#define MOVIE_NAME_LENGTH 50
+#define ROOMS             5
+
 /**
  * TODO explicar el protocolo
  * request:
@@ -41,6 +48,22 @@ typedef enum {
 typedef enum {
     RESPONSE_OK = 0,
     RESPONSE_ERR,
+    ALREADY_EXIST,
+    FAIL_TO_OPEN,
+    FAIL_QUERY,
+    BAD_BOOKING,
+    BAD_CLIENT,
+    BAD_SHOWCASE
 } response_type;
+
+typedef enum {
+    SUN,
+    MON,
+    TUE,
+    WED,
+    THU,
+    FRI,
+    SAT,
+} days;
 
 #endif //TPE_FINAL_SO_PROTOCOL_H

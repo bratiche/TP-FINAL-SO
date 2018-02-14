@@ -45,7 +45,6 @@ void process_request(int state, Request * request) {
     log_request(request);
     database_open();
 
-
     int cache;
     switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
@@ -57,11 +56,11 @@ void process_request(int state, Request * request) {
             printf("%d\n", cache);
             break;
         case ADD_BOOKING:
-            cache=add_booking(request->args[0],atoi(request->args[1]),atoi(request->args[2]),request->args[3],atoi(request->args[4]));
+            cache=add_booking(request->args[0],request->args[1],atoi(request->args[2]),atoi(request->args[3]),atoi(request->args[4]));
             printf("%d\n",cache);
             break;
         case GET_MOVIES:
-            printf("%d\n",OK);
+            printf("%d\n",RESPONSE_OK);
             cache=show_movies();
             break;
         case GET_SEATS:
@@ -72,15 +71,14 @@ void process_request(int state, Request * request) {
             cache=show_showcases();
             break;
         case GET_BOOKING:
-            printf("%d\n",OK);
             cache=show_client_booking(request->args[0]);
             break;
         case GET_CANCELLED:
-            printf("%d\n",OK);
+            printf("%d\n",RESPONSE_OK);
             cache=show_client_cancelled(request->args[0]);
             break;
         case REMOVE_BOOKING:
-            cache=cancel_booking(request->args[0],atoi(request->args[1]),atoi(request->args[2]),request->args[3],atoi(request->args[4]));
+            cache=cancel_booking(request->args[0],request->args[1],atoi(request->args[2]),atoi(request->args[3]),atoi(request->args[4]));
             printf("%d\n",cache);
             break;
         case REMOVE_SHOWCASE:
