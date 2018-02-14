@@ -60,22 +60,19 @@ void process_request(int state, Request * request) {
             printf("%d\n",cache);
             break;
         case GET_MOVIES:
-            printf("%d\n",RESPONSE_OK);
-            cache=show_movies();
+            show_movies();
             break;
         case GET_SEATS:
-            cache=show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
+            show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
             break;
         case GET_SHOWCASES:
-            printf("%d\n",0);
-            cache=show_showcases();
+            show_showcases();
             break;
         case GET_BOOKING:
-            cache=show_client_booking(request->args[0]);
+            show_client_booking(request->args[0]);
             break;
         case GET_CANCELLED:
-            printf("%d\n",RESPONSE_OK);
-            cache=show_client_cancelled(request->args[0]);
+            show_client_cancelled(request->args[0]);
             break;
         case REMOVE_BOOKING:
             cache=cancel_booking(request->args[0],request->args[1],atoi(request->args[2]),atoi(request->args[3]),atoi(request->args[4]));
@@ -86,7 +83,7 @@ void process_request(int state, Request * request) {
             printf("%d\n",cache);
             break;
         default:
-            printf("%d\n",BAD);
+            printf("%d\n",RESPONSE_ERR);
             break; //remove it after
 
     }

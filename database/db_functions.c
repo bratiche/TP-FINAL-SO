@@ -156,9 +156,14 @@ int show_movies(){
     sprintf(showq,"SELECT DISTINCT movie FROM showcase");
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
-    if (rc != SQLITE_OK)
+    if (rc != SQLITE_OK) {
+        printf("%d\n", FAIL_QUERY);
         return FAIL_QUERY;
+    }
+
+    printf("%d\n", RESPONSE_OK);
     print_cols(rc,stmt);
+    return RESPONSE_OK;
 }
 
 int show_showcases(){
@@ -167,9 +172,14 @@ int show_showcases(){
     sprintf(showq,"SELECT DISTINCT movie,day,room FROM showcase");
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
-    if (rc != SQLITE_OK)
+    if (rc != SQLITE_OK) {
+        printf("%d\n", FAIL_QUERY);
         return FAIL_QUERY;
+    }
+
+    printf("%d\n", RESPONSE_OK);
     print_cols(rc,stmt);
+    return RESPONSE_OK;
 }
 
 int show_client_booking(char* name){
@@ -177,12 +187,10 @@ int show_client_booking(char* name){
     sqlite3_stmt *stmt = NULL;
     int client_id = get_client_id(name);
     if (client_id == INVALID_ID) {
-        printf("%d\n",BAD_CLIENT);
-        fflush(stdout);
+        printf("%d\n", BAD_CLIENT);
         return BAD_CLIENT;
     }
     printf("%d\n", RESPONSE_OK);
-    fflush(stdout);
 
     char* showq=malloc(MAX_QUERY_SIZE);
     sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id "
@@ -190,8 +198,10 @@ int show_client_booking(char* name){
             client_id);
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
-    if (rc != SQLITE_OK)
+    if (rc != SQLITE_OK) {
+        printf("%d\n", FAIL_QUERY);
         return FAIL_QUERY;
+    }
 
     print_cols(rc,stmt);
     return RESPONSE_OK;
@@ -203,12 +213,9 @@ int show_client_cancelled(char* name){
     int client_id = get_client_id(name);
     if (client_id == INVALID_ID) {
         printf("%d\n",BAD_CLIENT);
-        fflush(stdout);
-
         return BAD_CLIENT;
     }
     printf("%d\n", RESPONSE_OK);
-    fflush(stdout);
 
     char* showq=malloc(MAX_QUERY_SIZE);
     sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id "
@@ -216,8 +223,10 @@ int show_client_cancelled(char* name){
             client_id);
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
-    if (rc != SQLITE_OK)
+    if (rc != SQLITE_OK) {
+        printf("%d\n", FAIL_QUERY);
         return FAIL_QUERY;
+    }
     print_cols(rc,stmt);
     return RESPONSE_OK;
 }
