@@ -406,7 +406,7 @@ void admin_add_showcase(Client client) {
     do {
         room = getint("Pick a room (between 1 and 5): ");
         if (room <= 0 || room > ROOMS) {
-            printf("Invalid room number");
+            printf("Invalid room number\n");
         }
     } while (room <= 0 || room > ROOMS);
 

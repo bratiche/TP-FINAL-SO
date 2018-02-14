@@ -3,7 +3,8 @@
 
 #define BUFFER_SIZE         4096
 
-#define DEFAULT_HOST "localhost"
+#define LOCALHOST    "127.0.0.1"
+#define DEFAULT_HOST LOCALHOST
 #define DEFAULT_PORT 12345
 
 typedef struct client * Client;
