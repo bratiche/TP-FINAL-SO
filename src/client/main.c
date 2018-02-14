@@ -111,6 +111,9 @@ char * get_movie(Response * response) {
     int n;
     do {
         n = getint("Pick a movie: ");
+        if (n <= 0 || n > list_size(movies)) {
+            printf("Invalid option.\n");
+        }
     } while (n <= 0 || n > list_size(movies));
 
     movie = list_get(movies, n - 1);
@@ -147,6 +150,9 @@ Showcase * get_showcase(Response * response, char * movie_name) {
     int n;
     do {
         n = getint("Pick a showcase: ");
+        if (n <= 0 || n > list_size(showcases)) {
+            printf("Invalid option.\n");
+        }
     } while (n <= 0 || n > list_size(showcases));
 
     aux = list_get(showcases, n - 1);
@@ -182,6 +188,9 @@ int get_seat(Response * response) {
     do {
         row = getint("Enter row: ");
         col = getint("Enter column: ");
+        if (row <= 0 || row > ROWS || col <= 0 || col > COLS) {
+            printf("Invalid option.\n");
+        }
     } while (row <= 0 || row > ROWS || col <= 0 || col > COLS);
 
     //printf("SEAT: %d\n", ((row - 1) * COLS + col));
@@ -189,8 +198,8 @@ int get_seat(Response * response) {
     return ((row - 1) * COLS + col) - 1;
 }
 
-#define GET_COL(seat) ((seat) % COLS)
-#define GET_ROW(seat) (((seat)-(GET_COL(seat))) / COLS + 1)
+#define GET_COL(seat) (((seat) % COLS) + 1)
+#define GET_ROW(seat) (((seat) / COLS) + 1)
 
 void print_ticket(Ticket * ticket) {
     printf("==================================\n");
@@ -198,7 +207,7 @@ void print_ticket(Ticket * ticket) {
     printf("==================================\n");
     printf("%s, %d:%d\n", get_day(ticket->showcase.day), HOUR, MINUTES);
     printf("ROOM         ROW         SEAT\n");
-    printf("%d            %d           %d\n", ticket->showcase.room, GET_ROW(ticket->seat + 1), GET_COL(ticket->seat + 1));
+    printf("%d            %d           %d\n", ticket->showcase.room, GET_ROW(ticket->seat), GET_COL(ticket->seat));
     printf("==================================\n\n");
 }
 
@@ -307,6 +316,9 @@ Ticket * get_ticket(Response * response) {
     int n;
     do {
         n = getint("Pick a ticket: ");
+        if (n <= 0 || n > list_size(tickets)) {
+            printf("Invalid option.\n");
+        }
     } while (n <= 0 || n > list_size(tickets));
 
     aux = list_get(tickets, n - 1);
@@ -401,7 +413,7 @@ void admin_add_showcase(Client client) {
     bool add = yesNo("Press (y/n): ");
     if (add) {
         // ADD_SHOWCASE
-        send_request(client, ADD_SHOWCASE, "%s%d%d", movie_name, day, room);
+        send_request(client, ADD_SHOWCASE, "%s%d%d", movie_name, day - 1, room);
         response = wait_response(client);
         if (response->status == RESPONSE_OK) {
             printf("Showcase added..\n");
