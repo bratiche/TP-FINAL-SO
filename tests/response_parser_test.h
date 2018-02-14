@@ -1,0 +1,6 @@
+#ifndef TPE_FINAL_SO_RESPONSE_PARSER_TEST_H
+#define TPE_FINAL_SO_RESPONSE_PARSER_TEST_H
+
+void response_parser_test();
+
+#endif //TPE_FINAL_SO_RESPONSE_PARSER_TEST_H
