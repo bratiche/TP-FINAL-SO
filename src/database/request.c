@@ -84,7 +84,7 @@ void process_request(int state, Request * request) {
             cache = show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
             break;
         case GET_SHOWCASES:
-            cache = show_showcases();
+            cache = show_showcases_by_movie(request->args[0]);
             break;
         case GET_BOOKING:
             cache = show_client_booking(request->args[0]);
