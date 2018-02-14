@@ -108,10 +108,11 @@ char * get_movie(Response * response) {
         printf("%d- %s\n", i + 1, movie);
     }
 
+    printf("Movie size: %d\n", list_size(movies));
     int n;
     do {
         n = getint("Pick a movie: ");
-    } while (n <= 0 && n > list_size(movies));
+    } while (n <= 0 || n > list_size(movies));
 
     movie = list_get(movies, n - 1);
     char * ret =  calloc(strlen(movie) + 1, sizeof(char));
@@ -144,7 +145,7 @@ Showcase * get_showcase(Response * response) {
     int n;
     do {
         n = getint("Pick a showcase: ");
-    } while (n <= 0 && n > list_size(showcases));
+    } while (n <= 0 || n > list_size(showcases));
 
     aux = list_get(showcases, n - 1);
     Showcase * showcase = new_showcase(aux->movie_name, aux->day, aux->room);
@@ -161,13 +162,29 @@ int get_seat(Response * response) {
     int seats[SEATS];
     response_extract_seats(response, seats);
 
+    for (int i = 0; i < ROWS; i++) {
+        printf("%d\t", i+1);
+        for (int j = 0; j < COLS; j++) {
+            printf("[%c]\t", seats[i * COLS + j] == EMPTY_SEAT ? ' ':'X' );
+        }
+        putchar('\n');
+    }
+
+    putchar('\t');
+    for (int j = 0; j < COLS; j++) {
+        printf(" %d\t", j+1);
+    }
+
+    putchar('\n');
     int row, col;
     do {
         row = getint("Enter row: ");
         col = getint("Enter column: ");
     } while (row <= 0 || row > ROWS || col <= 0 || col > COLS);
 
-    return row * col;
+    printf("ASIENTO: %d\n", ((row - 1) * COLS + col));
+
+    return ((row - 1) * COLS + col) - 1;
 }
 
 void buy_ticket(Client client, char * client_name) {

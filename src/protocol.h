@@ -11,10 +11,12 @@
 
 #define MOVIE_NAME_LENGTH   ARG_SIZE
 #define CLIENT_NAME_LENGTH  ARG_SIZE
+#define EMPTY_SEAT 1
 
 
 /**
- * TODO explicar el protocolo
+ * Protocolo de comunicacion orientado a texto.
+ *
  * request:
  * REQ_ID \n ARGUMENTOS separados por \n . \n
  *
@@ -47,7 +49,6 @@ typedef enum {
 } request_type;
 
 /**
- * TODO definir codigos de error
  * Posibles estados de la respuesta
  */
 typedef enum {

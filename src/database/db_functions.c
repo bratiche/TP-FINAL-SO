@@ -16,7 +16,7 @@ char * create_tables =
                 "\tPRIMARY KEY(id)\n"
                 ");\n"
                 "\n"
-                "CREATE TABLE IF NOT EXISTS showcase(\n"
+        "CREATE TABLE IF NOT EXISTS showcase(\n"
                 "\tid INTEGER NOT NULL,\n"
                 "\tmovie TEXT NOT NULL,\n"
                 "\tday INT NOT NULL,\n"
@@ -24,7 +24,7 @@ char * create_tables =
                 "\tPRIMARY KEY(id)\n"
                 ");\n"
                 "\n"
-                "CREATE TABLE IF NOT EXISTS booking(\n"
+        "CREATE TABLE IF NOT EXISTS booking(\n"
                 "\tclient_id INTEGER NOT NULL,\n"
                 "\tshowcase_id INTEGER NOT NULL,\n"
                 "\tcancelled INTEGER NOT NULL,\n"
@@ -35,7 +35,7 @@ char * create_tables =
                 ");";
 
 sqlite3* db_fd;
-char* exec_error_msg="Modifica exec\n"; //todo despues tiene que ser NULL
+char* exec_error_msg=ERR_MSG;
 int callback_retr_id(void *data, int argc, char **argv, char **azColName);
 
 
@@ -257,7 +257,6 @@ int show_seats(char *movie, int day, int room){
 }
 
 int add_booking(char *name, char *movie, int day, int room, int seat) {
-    char *err_msg = ERR_MSG;
     int rc;
     int client_id, showcase_id;
 
