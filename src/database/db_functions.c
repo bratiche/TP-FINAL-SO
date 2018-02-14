@@ -271,10 +271,7 @@ int add_booking(char *name, char *movie, int day, int room, int seat) {
     }
     int exist=INVALID_ID; //En caso que sean 0 tuplas retorna INVALID_ID
     char *client_query = malloc(MAX_QUERY_SIZE);
-    sprintf(client_query, "SELECT client_id FROM booking "
-                    "WHERE client_id = %d AND showcase_id = %d AND seat = %d "
-                    "AND cancelled = 0",
-            client_id,showcase_id,seat);
+    sprintf(client_query, "SELECT 111 FROM booking WHERE showcase_id = %d AND seat = %d AND cancelled = 0",showcase_id,seat);
     rc = sqlite3_exec(db_fd, client_query, callback_retr_id, &exist, NULL);
     free(client_query);
     if(exist!=INVALID_ID)
