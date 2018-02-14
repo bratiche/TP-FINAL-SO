@@ -265,7 +265,7 @@ int show_seats(char *movie, int day, int room){
         int client_id=INVALID_ID;
         char *showb_query=malloc(MAX_QUERY_SIZE);
         sprintf(showb_query,"SELECT client_id FROM booking "
-                "WHERE showcase_id = %d AND seat = %d",
+                "WHERE showcase_id = %d AND seat = %d AND cancelled = 0",
                 show_id,i);
         rc = sqlite3_exec(db_fd,showb_query,callback_retr_id,&client_id,&exec_error_msg);
         if (rc != SQLITE_OK) {
@@ -329,7 +329,7 @@ int cancel_booking(char *name, char *movie, int day, int room, int seat) {
 
     char *update_query = malloc(MAX_QUERY_SIZE);
     sprintf(update_query,
-            "UPDATE booking SET cancelled = 1 WHERE booking.client_id = '%d' AND booking.showcase_id = '%d' AND booking.seat = '%d'",
+            "UPDATE booking SET cancelled = 1 WHERE booking.client_id = %d AND booking.showcase_id = %d AND booking.seat = %d",
             client_id, showcase_id, seat);
     rc = sqlite3_exec(db_fd,update_query,NULL,NULL,NULL);
     free(update_query);
