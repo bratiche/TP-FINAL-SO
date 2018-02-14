@@ -24,6 +24,7 @@ int show_client_cancelled(char* name);
 int show_seats(char *movie, int day, int room);
 int show_movies();
 int show_showcases();
+int show_showcases_by_movie(char* movie);
 
 int get_client_id(char *name);
 int get_showcase_id(char *movie, int day, int room);
