@@ -3,12 +3,14 @@
 
 #include "../common/list.h"
 
-#define ARGS_BLOCK  50   // used for memory allocation
+#define ROWS        10
+#define COLS        4
+#define SEATS_COUNT ROWS * COLS
 
 typedef struct {
     int status;
     int argc;
-    char * args; // all arguments in one single string separated by \n
+    char ** args;
 } Response;
 
 typedef struct {
@@ -17,14 +19,24 @@ typedef struct {
     int room;
 } Showcase;
 
+typedef struct {
+    Showcase showcase;
+    int seat;
+} Ticket;
+
 Response * new_response(void);
 
-void process_response(Response * response);
+/** Fills the array with 1 if the seat is reserved and 0 if it is not */
+void response_extract_seats(Response * response, int * seats);
 
 /** Returns a list of movie names */
 List response_extract_movies(Response * response);
 
+/** Returns a list of Showcases */
 List response_extract_showcases(Response * response);
+
+/** Returns a list of Tickets */
+List response_extract_tickets(Response * response);
 
 char * get_response_status(Response * response);
 

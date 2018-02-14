@@ -16,7 +16,8 @@ typedef struct {
     Parser * multiline_parser;
     Response * response;
     response_state state;
-    int args_size;
+    char * arg;
+    int arg_index;
 } ResponseParser;
 
 /** Initializes the parser */

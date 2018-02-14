@@ -1,10 +1,12 @@
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <stdio.h>
 #include "response_parser.h"
 #include "../common/multiline_parser.h"
 #include "../common/utils.h"
-#include "../common/protocol.h"
+
+#define ARG_BLOCK   50
 
 extern bool debug;
 
@@ -12,20 +14,21 @@ void response_parser_init(ResponseParser * parser, Response * response) {
     const ParserDefinition *definition = multiline_parser_definition();
     parser->multiline_parser = parser_init(parser_no_classes(), definition);
     parser->response = response;
-    parser->args_size = 0;
     parser->state = response_status;
+    parser->arg_index = 0;
+    parser->arg = NULL;
 }
 
-response_state new_args_block(ResponseParser * parser) {
-    char * aux = parser->response->args;
+response_state new_arg_block(ResponseParser * parser) {
+    char * aux = parser->arg;
 
-    aux = realloc(aux, (size_t)parser->args_size + ARGS_BLOCK);
+    aux = realloc(aux, (size_t)parser->arg_index + ARG_BLOCK);
     if (aux == NULL) {
         return response_error;
     }
 
-    aux[parser->args_size] = 0;
-    parser->response->args = aux;
+    aux[parser->arg_index] = 0;
+    parser->arg = aux;
     return response_args;
 }
 
@@ -44,9 +47,9 @@ response_state byte(ResponseParser * parser, char c) {
             break;
         case response_args:
             ret = response_args;
-            parser->response->args[parser->args_size++] = c;
-            if (parser->args_size % ARGS_BLOCK == 0) {
-                ret = new_args_block(parser);
+            parser->arg[parser->arg_index++] = c;
+            if (parser->arg_index % ARG_BLOCK == 0) {
+                ret = new_arg_block(parser);
             }
             break;
         default:
@@ -57,23 +60,45 @@ response_state byte(ResponseParser * parser, char c) {
     return ret;
 }
 
+response_state copy_arg(ResponseParser * parser, response_state state) {
+    char ** aux = realloc(parser->response->args, (sizeof (char*)) * (parser->response->argc + 1));
+
+    if (aux == NULL) {
+        fprintf(stderr, "Memory error");
+        return response_error;
+    }
+
+    char * aux_arg = calloc((size_t)parser->arg_index + 1, sizeof(char));
+    printf("PARSER: %d\n", parser->arg_index);
+    if (aux_arg == NULL) {
+        free(aux);
+        fprintf(stderr, "Memory error");
+        return response_error;
+    }
+
+    strncpy(aux_arg, parser->arg, (size_t)parser->arg_index);
+    parser->response->args = aux;
+    parser->response->args[parser->response->argc++] = aux_arg;
+
+    return state;
+}
+
 response_state newline(ResponseParser * parser, char c) {
     response_state ret = response_args;
 
-    if (parser->response->argc > 0) {
-        parser->response->args[parser->args_size++] = '\n';
-        if (parser->args_size % ARGS_BLOCK == 0) {
-            if (new_args_block(parser) == response_error) {
-                return response_error;
-            }
+    // copio el arg viejo si lo habia
+    if (parser->arg != NULL) {
+        if (copy_arg(parser, ret) == response_error) {
+            return response_error;
         }
+        free(parser->arg);
+        parser->arg_index = 0;
+        parser->arg = NULL;
     }
 
-    parser->response->argc++;
-    parser->response->args[parser->args_size++] = c;
-    if (parser->args_size % ARGS_BLOCK == 0) {
-        ret = new_args_block(parser);
-    }
+    ret = new_arg_block(parser);
+    parser->arg[parser->arg_index++] = c;
+
     return ret;
 }
 
@@ -92,7 +117,12 @@ response_state response_parser_feed(ResponseParser * parser, char c) {
                 //
                 break;
             case MULTI_FIN:
-                parser->state = response_done;
+                // copy last arg
+                if (parser->arg != NULL) {
+                    parser->state = copy_arg(parser, response_done);
+                } else {
+                    parser->state = response_done;
+                }
                 break;
             default:
                 parser->state = response_error;
@@ -127,4 +157,5 @@ bool response_parser_is_done(ResponseParser * parser, bool *error) {
 
 void response_parser_destroy(ResponseParser * parser) {
     parser_destroy(parser->multiline_parser);
+    free(parser->arg);
 }

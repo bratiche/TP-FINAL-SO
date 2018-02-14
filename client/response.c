@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+#include <assert.h>
 #include "response.h"
 #include "../common/protocol.h"
 
@@ -12,30 +13,25 @@ Response * new_response() {
 
     ret->status = RESPONSE_OK;
     ret->argc = 0;
-    ret->args = calloc(ARGS_BLOCK, sizeof(char));
-    if (ret->args == NULL) {
-        free(ret);
-        return NULL;
-    }
+    ret->args = NULL;
 
     return ret;
 }
 
-void process_response(Response * response) {
+void response_extract_seats(Response * response, int * seats) {
 
+    assert(response->argc == SEATS_COUNT);
+
+    for (int i = 0; i < response->argc; i++) {
+        seats[i] = atoi(response->args[i]);
+    }
 }
-
-#define DELIM "\n"
 
 List response_extract_movies(Response * response) {
     List list = list_new();
 
-    char * args = response->args;
-    char * token = strtok(args, DELIM);
-
-    while (token != NULL) {
-        list_add(list, token);
-        token = strtok(args, DELIM);
+    for (int i = 0; i < response->argc; i++) {
+        list_add(list, response->args[i]);
     }
 
     return list;
@@ -45,29 +41,59 @@ List response_extract_movies(Response * response) {
 List response_extract_showcases(Response * response) {
     List list = list_new();
 
-    char * args = response->args;
-    char * token = strtok(args, DELIM);
-
-    while (token != NULL) {
+    for (int i = 0; i < response->argc;) {
+        if (response->argc < i + 3) {
+            fprintf(stderr, "Response error.");
+            exit(EXIT_FAILURE);
+        }
         Showcase * showcase = malloc(sizeof(*showcase));
         if (showcase == NULL) {
             fprintf(stderr, "Memory error.");
             exit(EXIT_FAILURE);
         }
-        showcase->movie_name = token;
-        token = strtok(args, DELIM);
-        if (token != NULL) {
-            showcase->day = atoi(token);
-            token = strtok(args, DELIM);
-            if (token != NULL) {
-                showcase->room = atoi(token);
-            }
-        }
+        showcase->movie_name = response->args[i];
+        showcase->day   = atoi(response->args[i+1]);
+        showcase->room  = atoi(response->args[i+2]);
+        i += 3;
+
         list_add(list, showcase);
-        token = strtok(args, DELIM);
     }
 
     return list;
+}
+
+List response_extract_tickets(Response * response) {
+    List list = list_new();
+
+    for (int i = 0; i < response->argc;) {
+        if (response->argc < i + 4) {
+            fprintf(stderr, "Response error.");
+            exit(EXIT_FAILURE);
+        }
+
+        Ticket * ticket = malloc(sizeof(*ticket));
+        if (ticket == NULL) {
+            fprintf(stderr, "Memory error.");
+            exit(EXIT_FAILURE);
+        }
+        ticket->showcase.movie_name = response->args[i];
+        ticket->showcase.day   = atoi(response->args[i+1]);
+        ticket->showcase.room  = atoi(response->args[i+2]);
+        ticket->seat           = atoi(response->args[i+3]);
+        i += 4;
+
+        list_add(list, ticket);
+    }
+
+    return list;
+}
+
+void destroy_showcase(Showcase * showcase) {
+    free(showcase);
+}
+
+void destroy_ticket(Ticket * ticket) {
+    free(ticket);
 }
 
 char * get_response_status(Response * response) {
@@ -90,10 +116,15 @@ char * get_response_status(Response * response) {
 void print_response(Response * response) {
     printf("status:%d\n", response->status);
     printf("argc:%d\n", response->argc);
-    printf("args:\n%s\n", response->args);
+    for (int i = 0; i < response->argc; i++) {
+        printf("argv[%d]: %s\n", i + 1, response->args[i]);
+    }
 }
 
 void destroy_response(Response * response) {
+    for (int i = 0; i < response->argc; i++) {
+        free(response->args[i]);
+    }
     free(response->args);
     free(response);
 }
