@@ -21,13 +21,14 @@ char * create_tables =
                 ");\n"
                 "\n"
         "CREATE TABLE IF NOT EXISTS booking(\n"
+                "\tid INTEGER NOT NULL,\n"
                 "\tclient_id INTEGER NOT NULL,\n"
                 "\tshowcase_id INTEGER NOT NULL,\n"
                 "\tcancelled INTEGER NOT NULL,\n"
                 "\tseat INTEGER NOT NULL,\n"
                 "\tFOREIGN KEY (client_id) REFERENCES client(id),\n"
                 "\tFOREIGN KEY (showcase_id) REFERENCES showcase(id),\n"
-                "\tPRIMARY KEY (client_id, showcase_id, seat)\n"
+                "\tPRIMARY KEY (id)\n"
                 ");";
 
 sqlite3* db_fd;
@@ -306,7 +307,7 @@ int add_booking(char *name, char *movie, int day, int room, int seat) {
         return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
 
-    sprintf(insert_query, "INSERT INTO booking VALUES(%d, %d, 0, %d)", client_id, showcase_id, seat);
+    sprintf(insert_query, "INSERT INTO booking(client_id, showcase_id, cancelled, seat) VALUES(%d, %d, 0, %d)", client_id, showcase_id, seat);
     rc = sqlite3_exec(db_fd, insert_query, NULL, NULL, NULL);
     free(insert_query);
     if (rc != SQLITE_OK)
