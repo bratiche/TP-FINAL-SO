@@ -12,6 +12,7 @@
 #define _getnum_h
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* funcion que lee de la entrada estandar un numero entero
 ** Modo de uso: n = getint("Ingrese un numero entre %d y %d: ", 0, 10);
@@ -31,6 +32,6 @@ double getdouble(const char mensaje[], ...);
 
 
 /* lee S,s,N, o n  */
-int yesNo(const char mensaje[], ...);
+bool yesNo(const char mensaje[], ...);
 
 #endif

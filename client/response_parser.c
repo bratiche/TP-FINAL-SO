@@ -69,7 +69,6 @@ response_state copy_arg(ResponseParser * parser, response_state state) {
     }
 
     char * aux_arg = calloc((size_t)parser->arg_index + 1, sizeof(char));
-    printf("PARSER: %d\n", parser->arg_index);
     if (aux_arg == NULL) {
         free(aux);
         fprintf(stderr, "Memory error");

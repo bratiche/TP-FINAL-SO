@@ -3,10 +3,6 @@
 
 #include "../common/list.h"
 
-#define ROWS        10
-#define COLS        4
-#define SEATS_COUNT ROWS * COLS
-
 typedef struct {
     int status;
     int argc;
@@ -37,6 +33,14 @@ List response_extract_showcases(Response * response);
 
 /** Returns a list of Tickets */
 List response_extract_tickets(Response * response);
+
+Showcase * new_showcase(char * movie_name, int day, int room);
+
+void destroy_showcase(Showcase * showcase);
+
+Ticket * new_ticket(Showcase showcase, int seat);
+
+void destroy_ticket(Ticket * ticket);
 
 char * get_response_status(Response * response);
 

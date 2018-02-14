@@ -18,9 +18,20 @@ Response * new_response() {
     return ret;
 }
 
+/** Retorna una copia de arg */
+char * copy(char * arg) {
+    char * ret = malloc (strlen(arg) + 1);
+    if (ret == NULL) {
+        fprintf(stderr, "Memory error.");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(ret, arg);
+    return ret;
+}
+
 void response_extract_seats(Response * response, int * seats) {
 
-    assert(response->argc == SEATS_COUNT);
+    assert(response->argc == SEATS);
 
     for (int i = 0; i < response->argc; i++) {
         seats[i] = atoi(response->args[i]);
@@ -37,7 +48,6 @@ List response_extract_movies(Response * response) {
     return list;
 }
 
-// TODO test
 List response_extract_showcases(Response * response) {
     List list = list_new();
 
@@ -51,7 +61,7 @@ List response_extract_showcases(Response * response) {
             fprintf(stderr, "Memory error.");
             exit(EXIT_FAILURE);
         }
-        showcase->movie_name = response->args[i];
+        showcase->movie_name = copy(response->args[i]);
         showcase->day   = atoi(response->args[i+1]);
         showcase->room  = atoi(response->args[i+2]);
         i += 3;
@@ -76,7 +86,7 @@ List response_extract_tickets(Response * response) {
             fprintf(stderr, "Memory error.");
             exit(EXIT_FAILURE);
         }
-        ticket->showcase.movie_name = response->args[i];
+        ticket->showcase.movie_name = copy(response->args[i]);
         ticket->showcase.day   = atoi(response->args[i+1]);
         ticket->showcase.room  = atoi(response->args[i+2]);
         ticket->seat           = atoi(response->args[i+3]);
@@ -88,11 +98,42 @@ List response_extract_tickets(Response * response) {
     return list;
 }
 
+Showcase * new_showcase(char * movie_name, int day, int room) {
+    Showcase * showcase = malloc(sizeof(*showcase));
+    if (showcase == NULL) {
+        fprintf(stderr, "Memory error.");
+        exit(EXIT_FAILURE);
+    }
+
+    showcase->movie_name = copy(movie_name);
+    showcase->day = day;
+    showcase->room = room;
+
+    return showcase;
+}
+
 void destroy_showcase(Showcase * showcase) {
+    free(showcase->movie_name);
     free(showcase);
 }
 
+Ticket * new_ticket(Showcase showcase, int seat) {
+    Ticket * ticket = malloc(sizeof(*ticket));
+    if (ticket == NULL) {
+        fprintf(stderr, "Memory error.");
+        exit(EXIT_FAILURE);
+    }
+
+    ticket->showcase.movie_name = copy(showcase.movie_name);
+    ticket->showcase.day = showcase.day;
+    ticket->showcase.room = showcase.room;
+    ticket->seat = seat;
+
+    return ticket;
+}
+
 void destroy_ticket(Ticket * ticket) {
+    free(ticket->showcase.movie_name);
     free(ticket);
 }
 
@@ -104,6 +145,24 @@ char * get_response_status(Response * response) {
             break;
         case RESPONSE_ERR:
             ret = "ERROR";
+            break;
+        case ALREADY_EXIST:
+            ret = "ALREADY EXISTS";
+            break;
+        case FAIL_TO_OPEN:
+            ret = "FAIL TO OPEN";
+            break;
+        case FAIL_QUERY:
+            ret =  "FAIL QUERY";
+            break;
+        case BAD_BOOKING:
+            ret = "BAD BOOKING";
+            break;
+        case BAD_CLIENT:
+            ret =  "BAD CLIENT";
+            break;
+        case BAD_SHOWCASE:
+            ret = "BAD SHOWCASE";
             break;
         default:
             ret = "UNKNOWN ERROR";

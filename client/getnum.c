@@ -95,8 +95,8 @@ getdouble(const char mensaje[], ...)
 	return n;
 }
 
-/* lee S,s,N, o n  */
-int 
+/* lee Y,y,N, o n  */
+bool 
 yesNo(const char mensaje[], ...)
 {
 	int op;
@@ -120,5 +120,5 @@ yesNo(const char mensaje[], ...)
 			salir = 1;
 	} while (! salir);
 	BORRA_BUFFER;
-	return strchr("Ss", op) != NULL;
+	return strchr("Yy", op) != NULL;
 }

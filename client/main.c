@@ -76,7 +76,7 @@ Response * wait_response(Client client) {
     Response * response = new_response();
     if (response == NULL) {
         fprintf(stderr, "Memory error");
-        exit(EXIT_FAILURE); //GG
+        exit(EXIT_FAILURE);
     }
 
     char buffer[BUFFER_SIZE] = {0};
@@ -95,7 +95,7 @@ Response * wait_response(Client client) {
     response_parser_destroy(&parser);
 
     printf("Server response: %s\n", get_response_status(response));
-    print_response(response);
+    //print_response(response);
     return response;
 }
 
@@ -114,7 +114,7 @@ char * get_movie(Response * response) {
 
     char * movie;
     for (int i = 0; (movie = list_get_next(movies)) != NULL; i++){
-        printf("%d- %s", i + 1, movie);
+        printf("%d- %s\n", i + 1, movie);
     }
 
     int n;
@@ -133,17 +133,21 @@ char * get_movie(Response * response) {
     return ret;
 }
 
-int get_showcase(Response * response, Showcase * showcase) {
+void print_showcase(Showcase * showcase, int index) {
+    printf("%d- movie: %s, day: %d, room: %d\n", index, showcase->movie_name, showcase->day, showcase->room);
+}
+
+Showcase * get_showcase(Response * response) {
     List showcases = response_extract_showcases(response);
 
     if (list_size(showcases) == 0) {
         list_destroy(showcases);
-        return -1;
+        return NULL;
     }
 
     Showcase * aux;
-    for (int i = 0; (aux = list_get_next(showcases)) != NULL; i++){
-        printf("%d- movie: %s, day: %d, room: %d", i + 1, aux->movie_name, aux->day, aux->room);
+    for (int i = 0; (aux = list_get_next(showcases)) != NULL; i++) {
+        print_showcase(aux, i + 1);
     }
 
     int n;
@@ -152,27 +156,27 @@ int get_showcase(Response * response, Showcase * showcase) {
     } while (n <= 0 && n > list_size(showcases));
 
     aux = list_get(showcases, n - 1);
-    showcase->day = aux->day;
-    showcase->room = aux->room;
+    Showcase * showcase = new_showcase(aux->movie_name, aux->day, aux->room);
 
     while ((aux = list_get_next(showcases)) != NULL) {
-        free(aux);
+        destroy_showcase(aux);
     }
 
     list_destroy(showcases);
-    return 0;
+    return showcase;
 }
 
 int get_seat(Response * response) {
-    int seats[SEATS_COUNT];
+    int seats[SEATS];
     response_extract_seats(response, seats);
 
-//    do {
-//        pick row
-//        pick col
-//    } while (row < 0)
+    int row, col;
+    do {
+        row = getint("Enter row: ");
+        col = getint("Enter column: ");
+    } while (row <= 0 || row > ROWS || col <= 0 || col > COLS);
 
-    return 0;
+    return row * col;
 }
 
 void buy_ticket(Client client, char * client_name) {
@@ -193,25 +197,24 @@ void buy_ticket(Client client, char * client_name) {
     send_request(client, GET_SHOWCASES, "%s", movie_name);
     response = wait_response(client);
 
-    Showcase showcase;
-    showcase.movie_name = movie_name;
-    int ret = get_showcase(response, &showcase);
+    Showcase * showcase  = get_showcase(response);
     destroy_response(response);
 
-    if (ret != 0) {
+    if (showcase == NULL) {
         printf("There are no showcases for the movie: '%s'...\n", movie_name);
+        free(movie_name);
         return;
     }
 
     // GET_SEATS
-    send_request(client, GET_SEATS, "%s%d%d", movie_name, showcase.day, showcase.room);
+    send_request(client, GET_SEATS, "%s%d%d", showcase->movie_name, showcase->day, showcase->room);
     response = wait_response(client);
 
     int seat = get_seat(response);
     destroy_response(response);
 
     // ADD_BOOKING
-    send_request(client, ADD_BOOKING, "%s%s%d%d%d", client_name, movie_name, showcase.day, showcase.room, seat);
+    send_request(client, ADD_BOOKING, "%s%s%d%d%d", client_name, showcase->movie_name, showcase->day, showcase->room, seat);
     response = wait_response(client);
 
     if (response->status == RESPONSE_OK) {
@@ -221,10 +224,51 @@ void buy_ticket(Client client, char * client_name) {
     }
 
     destroy_response(response);
+    destroy_showcase(showcase);
+    free(movie_name);
 }
 
-void print_ticket(Ticket * ticket) {
-    // TODO print_ticket
+char * get_day(int day) {
+    char * ret;
+    switch (day) {
+        case SUN:
+            ret = "SUNDAY";
+            break;
+        case MON:
+            ret = "MONDAY";
+            break;
+        case TUE:
+            ret = "TUESDAY";
+            break;
+        case WED:
+            ret = "WEDNESDAY";
+            break;
+        case THU:
+            ret = "THURSDAY";
+            break;
+        case FRI:
+            ret = "FRIDAY";
+            break;
+        case SAT:
+            ret = "SATURDAY";
+            break;
+        default:
+            ret = "GG";
+            break;
+    }
+
+    return ret;
+}
+
+void print_ticket(Ticket * ticket, char * client_name, int index) {
+    printf("\t-Ticket %d-\n", index);
+    printf("---------------------------\n");
+    printf("\tName:  %s\n", client_name);
+    printf("\tMovie: %s\n", ticket->showcase.movie_name);
+    printf("\tDay:   %s\n", get_day(ticket->showcase.day));
+    printf("\tRoom:  %d\n", ticket->showcase.room);
+    printf("\tSeat:  %d\n", ticket->seat);
+    printf("---------------------------\n");
 }
 
 void view_tickets(Client client, char * client_name) {
@@ -233,13 +277,18 @@ void view_tickets(Client client, char * client_name) {
     send_request(client, GET_BOOKING, "%s", client_name);
     response = wait_response(client);
 
-    List tickets = response_extract_showcases(response);
+    List tickets = response_extract_tickets(response);
     Ticket * ticket;
 
-    for (int i = 0; (ticket = list_get_next(tickets)) != NULL; i++) {
-        printf("-%d-\n", i + 1);
-        print_ticket(ticket);
+    if (list_size(tickets) == 0) {
+        printf("You don't have any tickets.\n");
     }
+
+    for (int i = 0; (ticket = list_get_next(tickets)) != NULL; i++) {
+        print_ticket(ticket, client_name, i+1);
+        destroy_ticket(ticket);
+    }
+
     destroy_response(response);
     list_destroy(tickets);
 
@@ -247,19 +296,19 @@ void view_tickets(Client client, char * client_name) {
     getkey();
 }
 
-int get_ticket(Response * response, Ticket * ticket) {
+Ticket * get_ticket(Response * response, char * client_name) {
     List tickets = response_extract_tickets(response);
 
     if (list_size(tickets) == 0) {
         list_destroy(tickets);
-        return -1;
+        printf("You don't have any tickets.\n");
+        return 0;
     }
 
     Ticket * aux;
 
     for (int i = 0; (aux = list_get_next(tickets)) != NULL; i++) {
-        printf("-%d-\n", i + 1);
-        print_ticket(aux);
+        print_ticket(aux, client_name, i + 1);
     }
 
     int n;
@@ -269,13 +318,14 @@ int get_ticket(Response * response, Ticket * ticket) {
 
     aux = list_get(tickets, n - 1);
 
-    ticket->showcase = aux->showcase;
-    ticket->seat = aux->seat;
+    Ticket * ticket = new_ticket(aux->showcase, aux->seat);
 
-    destroy_response(response);
+    for (int i = 0; (aux = list_get_next(tickets)) != NULL; i++) {
+        destroy_ticket(aux);
+    }
     list_destroy(tickets);
 
-    return 0;
+    return ticket;
 }
 
 void cancel_reservation(Client client, char * client_name) {
@@ -284,35 +334,33 @@ void cancel_reservation(Client client, char * client_name) {
     send_request(client, GET_BOOKING, "%s", client_name);
     response = wait_response(client);
 
-    Ticket ticket;
-    int ret = get_ticket(response, &ticket);
+    Ticket * ticket = get_ticket(response, client_name);
     destroy_response(response);
-
-    if (ret != 0) {
-        printf("You don't have any tickets.\n");
+    if (ticket == NULL) {
         return;
     }
 
-    // TODO ask confirmation
-    yesNo("");
+    bool cancel = yesNo("Press (y/n): ");
+
+    if (!cancel) {
+        destroy_ticket(ticket);
+        return;
+    }
 
     // REMOVE_BOOKING
     send_request(client, REMOVE_BOOKING, "%s%s%d%d%d", client_name,
-                 ticket.showcase.movie_name, ticket.showcase.day,
-                 ticket.showcase.day, ticket.seat);
+                 ticket->showcase.movie_name, ticket->showcase.day,
+                 ticket->showcase.room, ticket->seat);
     response = wait_response(client);
 
     if (response->status == RESPONSE_OK) {
         printf("Reservation cancelled.\n");
     } else {
-        printf("Error cancelling reservation\n");
+        printf("Error cancelling reservation.\n");
     }
     destroy_response(response);
-
+    destroy_ticket(ticket);
 }
-
-#define MOVIE_NAME_LENGTH 50
-#define ROOMS             5
 
 void admin_add_showcase(Client client) {
 
@@ -330,7 +378,6 @@ void admin_add_showcase(Client client) {
             printf("Invalid room number");
         }
     } while (room <= 0 || room > ROOMS);
-
 
     send_request(client, ADD_SHOWCASE, "%s%d%d", movie_name, day, room);
     Response *response = wait_response(client);
@@ -360,17 +407,17 @@ void admin_remove_showcase(Client client) {
     send_request(client, GET_SHOWCASES, "%s", movie_name);
     response = wait_response(client);
 
-    Showcase showcase;
-    showcase.movie_name = movie_name;
-    int ret = get_showcase(response, &showcase);
+    Showcase * showcase = get_showcase(response);
     destroy_response(response);
 
-    if (ret != 0) {
+    if (showcase == NULL) {
         printf("There are no showcases for the movie: '%s'...\n", movie_name);
+        free(movie_name);
         return;
     }
+
     // REMOVE_SHOWCASE
-    send_request(client, REMOVE_SHOWCASE, "%s%d%d", movie_name, showcase.day, showcase.room);
+    send_request(client, REMOVE_SHOWCASE, "%s%d%d", showcase->movie_name, showcase->day, showcase->room);
     response = wait_response(client);
 
     if (response->status == RESPONSE_OK) {
@@ -380,6 +427,7 @@ void admin_remove_showcase(Client client) {
     }
 
     destroy_response(response);
+    destroy_showcase(showcase);
     free(movie_name);
 }
 
@@ -414,11 +462,13 @@ void add_new_client(Client client, char * client_name) {
     int status = response->status;
     destroy_response(response);
 
-    if (status != RESPONSE_OK) {
+    if (status == RESPONSE_OK) {
+        printf("Welcome %s!\n\n", client_name);
+    } else if (status == ALREADY_EXIST){
+        printf("Welcome back %s!\n\n", client_name);
+    } else {
         printf("Login error\n");
         exit(EXIT_FAILURE);
-    } else {
-        printf("Welcome %s!\n\n", client_name);
     }
 }
 
