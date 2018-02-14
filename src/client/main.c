@@ -124,6 +124,9 @@ char * get_movie(Response * response) {
     return ret;
 }
 
+#define HOUR    18
+#define MINUTES 30
+
 Showcase * get_showcase(Response * response, char * movie_name) {
     List showcases = response_extract_showcases(response);
 
@@ -134,11 +137,11 @@ Showcase * get_showcase(Response * response, char * movie_name) {
 
     Showcase * aux;
     printf("Showcases for '%s':\n", movie_name);
-    printf(" # | DAY | ROOM\n");
-    printf("----------------\n");
+    printf(" # | DAY | TIME  | ROOM\n");
+    printf("------------------------\n");
     for (int i = 0; (aux = list_get_next(showcases)) != NULL; i++) {
-        printf(" %d | %s |  %d\n", i + 1, get_day(aux->day), aux->room);
-        printf("----------------\n");
+        printf(" %d | %s | %d:%d |  %d\n", i + 1, get_day(aux->day), HOUR, MINUTES, aux->room);
+        printf("------------------------\n");
     }
 
     int n;
@@ -193,7 +196,7 @@ void print_ticket(Ticket * ticket) {
     printf("==================================\n");
     printf("TICKET FOR: %s\n", ticket->showcase.movie_name);
     printf("==================================\n");
-    printf("DAY: %s\n", get_day(ticket->showcase.day));
+    printf("%s, %d:%d\n", get_day(ticket->showcase.day), HOUR, MINUTES);
     printf("ROOM         ROW         SEAT\n");
     printf("%d            %d           %d\n", ticket->showcase.room, GET_ROW(ticket->seat + 1), GET_COL(ticket->seat + 1));
     printf("==================================\n\n");
@@ -373,6 +376,10 @@ void admin_add_showcase(Client client) {
             response = wait_response(client);
             movie_name = get_movie(response);
             destroy_response(response);
+            if (movie_name == NULL) {
+                printf("There are no movies...\n");
+                return;
+            }
             break;
         case ADD_SHOWCASE_EXIT:
             return;
