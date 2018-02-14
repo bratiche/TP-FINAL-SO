@@ -226,12 +226,9 @@ int show_seats(char *movie, int day, int room){
     int rc,show_id=get_showcase_id(movie,day,room);
     if(show_id == INVALID_ID) {
         printf("%d\n",BAD_SHOWCASE);
-        fflush(stdout);
-
         return BAD_SHOWCASE;
     }
     printf("%d\n", RESPONSE_OK);
-    fflush(stdout);
 
     for(int i=0;i<SEATS;i++){
         int client_id=INVALID_ID;
@@ -243,12 +240,8 @@ int show_seats(char *movie, int day, int room){
         free(showb_query);
         if(client_id==INVALID_ID){
             printf("1\n");
-            fflush(stdout);
-
         }else{
             printf("0\n");
-            fflush(stdout);
-
         }
     }
     return RESPONSE_OK;

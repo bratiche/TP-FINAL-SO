@@ -46,7 +46,7 @@ void process_request(int state, Request * request) {
     database_open();
 
     int cache;
-    switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
+    switch(request->type){
         case ADD_CLIENT:
             cache=add_client(request->args[0]);
             printf("%d\n", cache);
@@ -86,6 +86,7 @@ void process_request(int state, Request * request) {
             printf("%d\n",cache);
             break;
         default:
+            printf("%d\n",BAD);
             break; //remove it after
 
     }
