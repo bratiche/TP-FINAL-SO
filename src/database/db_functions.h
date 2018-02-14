@@ -10,7 +10,7 @@
 #define ERR_MSG 0
 #define MAX_QUERY_SIZE (2 + MAX_ARGS  * (ARG_SIZE + 2))
 
-#define INVALID_ID -1
+#define INVALID_ID (-1)
 
 int database_open();
 int database_close();
@@ -23,7 +23,7 @@ int show_client_booking(char* name);
 int show_client_cancelled(char* name);
 int show_seats(char *movie, int day, int room);
 int show_movies();
-int show_showcases();
+//int show_showcases();
 int show_showcases_by_movie(char* movie);
 
 int get_client_id(char *name);
