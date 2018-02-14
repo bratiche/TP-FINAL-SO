@@ -47,7 +47,6 @@ void process_request(int state, Request * request) {
 
 
     int cache;
-    int seats[40]={0};
     switch(request->type){ //TODO VERIFICAR QUE NO ROMPE
         case ADD_CLIENT:
             cache=add_client(request->args[0]);
@@ -66,11 +65,7 @@ void process_request(int state, Request * request) {
             cache=show_movies();
             break;
         case GET_SEATS:
-            printf("%d\n",OK);
             cache=show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
-            for(int i;i<SEATS;i++){
-                printf("%d\n",seats[i]);
-            }
             break;
         case GET_SHOWCASES:
             printf("%d\n",0);

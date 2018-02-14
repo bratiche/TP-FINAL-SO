@@ -7,6 +7,10 @@
 int callback_dummy(void *data, int argc, char **argv, char **azColName) {
     return 0;
 }
+int prin_stout(char* str){
+    write(STDOUT_FILENO, str, strlen(str));
+    return OK;
+}
 
 char * create_tables =
         "CREATE TABLE IF NOT EXISTS client(\n"
@@ -75,7 +79,8 @@ int add_showcase(char *movie, int day, int room) {
     if(showcase_id!=INVALID_ID)
         return ALREADY_EXIST;
     char *insert_query = malloc(MAX_QUERY_SIZE);
-    sprintf(insert_query, "INSERT INTO showcase(movie,day,room) VALUES('%s',%d,%d)", movie,day,room);
+    sprintf(insert_query, "INSERT INTO showcase(movie,day,room) VALUES('%s',%d,%d)",
+            movie,day,room);
     int rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
     free(insert_query);
     if(rc!=SQLITE_OK)
@@ -94,7 +99,8 @@ int remove_showcase(char *movie, int day, int room) {
     if(rc!=SQLITE_OK)
         return FAIL_QUERY;
     insert_query = malloc(MAX_QUERY_SIZE);
-    sprintf(insert_query, "DELETE FROM showcase WHERE movie='%s' AND day=%d AND room=%d", movie,day,room);
+    sprintf(insert_query, "DELETE FROM showcase WHERE movie='%s' AND day=%d AND room=%d",
+            movie,day,room);
     rc = sqlite3_exec(db_fd, insert_query, 0, 0, &exec_error_msg);
     free(insert_query);
     if(rc!=SQLITE_OK)
@@ -115,8 +121,8 @@ int get_showcase_id(char *movie, int day, int room) {
     int rc, showcase_id=INVALID_ID; //En caso que estan 0 tuplas retorna INVALID_ID
     char *showcase_query = malloc(MAX_QUERY_SIZE);
     sprintf(showcase_query,
-            "SELECT id FROM showcase WHERE showcase.movie = '%s' AND showcase.room = %d AND showcase.day = %d", movie,
-            room, day);
+            "SELECT id FROM showcase WHERE showcase.movie = '%s' AND showcase.room = %d AND showcase.day = %d",
+            movie, room, day);
     rc = sqlite3_exec(db_fd, showcase_query, callback_retr_id, &showcase_id, NULL);
     free(showcase_query);
     if (rc != SQLITE_OK)
@@ -174,10 +180,17 @@ int show_client_booking(char* name){
     sqlite3_stmt *stmt = NULL;
     int client_id = get_client_id(name);
     if (client_id == INVALID_ID) {
+        printf("%d\n",BAD_CLIENT);
+        fflush(stdout);
         return BAD_CLIENT;
     }
+    printf("%d\n",OK);
+    fflush(stdout);
+
     char* showq=malloc(MAX_QUERY_SIZE);
-    sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id WHERE client_id = %d AND cancelled = 0",client_id);
+    sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id "
+                    "WHERE client_id = %d AND cancelled = 0",
+            client_id);
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
     if (rc != SQLITE_OK)
@@ -192,10 +205,18 @@ int show_client_cancelled(char* name){
     sqlite3_stmt *stmt = NULL;
     int client_id = get_client_id(name);
     if (client_id == INVALID_ID) {
+        printf("%d\n",BAD_CLIENT);
+        fflush(stdout);
+
         return BAD_CLIENT;
     }
+    printf("%d\n",OK);
+    fflush(stdout);
+
     char* showq=malloc(MAX_QUERY_SIZE);
-    sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id WHERE client_id = %d AND cancelled = 1",client_id);
+    sprintf(showq,"SELECT movie,day,room,seat FROM booking INNER JOIN showcase ON showcase.id = booking.showcase_id "
+            "WHERE client_id = %d AND cancelled = 1",
+            client_id);
     int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
     free(showq);
     if (rc != SQLITE_OK)
@@ -207,20 +228,32 @@ int show_client_cancelled(char* name){
 int show_seats(char *movie, int day, int room){
     int rc,show_id=get_showcase_id(movie,day,room);
     if(show_id == INVALID_ID) {
+        printf("%d\n",BAD_SHOWCASE);
+        fflush(stdout);
+
         return BAD_SHOWCASE;
     }
+    printf("%d\n",OK);
+    fflush(stdout);
+
     for(int i=0;i<SEATS;i++){
         int client_id=INVALID_ID;
         char *showb_query=malloc(MAX_QUERY_SIZE);
-        sprintf(showb_query,"SELECT client_id FROM booking WHERE showcase_id = %d AND seat = %d AND cancelled = 0",show_id,i);
+        sprintf(showb_query,"SELECT client_id FROM booking "
+                "WHERE showcase_id = %d AND seat = %d AND cancelled = 0",
+                show_id,i);
         rc = sqlite3_exec(db_fd,showb_query,callback_retr_id,&client_id,&exec_error_msg);
         free(showb_query);
         if(client_id==INVALID_ID){
             printf("1\n");
+            fflush(stdout);
+
         }else{
             printf("0\n");
+            fflush(stdout);
+
         }
-}
+    }
     return OK;
 }
 
@@ -240,7 +273,9 @@ int add_booking(char *movie, int day, int room, char *name, int seat) {
     }
     int exist=INVALID_ID; //En caso que sean 0 tuplas retorna INVALID_ID
     char *client_query = malloc(MAX_QUERY_SIZE);
-    sprintf(client_query, "SELECT 1 FROM booking WHERE client_id = %d AND showcase_id = %d AND seat = %d", client_id,showcase_id,seat);
+    sprintf(client_query, "SELECT 1 FROM booking "
+                    "WHERE client_id = %d AND showcase_id = %d AND seat = %d",
+            client_id,showcase_id,seat);
     rc = sqlite3_exec(db_fd, client_query, callback_retr_id, &exist, NULL);
     free(client_query);
     if(exist==1)
