@@ -3,10 +3,12 @@
 
 #include <sqlite3.h>
 #include "stdbool.h"
+#include "../protocol.h"
+
 #define DB_FILENAME "cinema.db"
 
 #define ERR_MSG 0
-#define MAX_QUERY_SIZE 500
+#define MAX_QUERY_SIZE (2 + MAX_ARGS  * (ARG_SIZE + 2))
 
 #define INVALID_ID -1
 

@@ -5,8 +5,13 @@
 #define COLS        4
 #define SEATS       ROWS * COLS
 
-#define MOVIE_NAME_LENGTH 50
-#define ROOMS             5
+#define MAX_ARGS    5
+#define ARG_SIZE    50
+#define ROOMS       5
+
+#define MOVIE_NAME_LENGTH   ARG_SIZE
+#define CLIENT_NAME_LENGTH  ARG_SIZE
+
 
 /**
  * TODO explicar el protocolo

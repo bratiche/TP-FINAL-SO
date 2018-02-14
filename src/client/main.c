@@ -1,7 +1,3 @@
-/**
- * Frontend
- */
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,11 +93,6 @@ Response * wait_response(Client client) {
     printf("Server response: %s\n", get_response_status(response));
     //print_response(response);
     return response;
-}
-
-int getkey() {
-    printf("Press any key... ");
-    return getchar();
 }
 
 char * get_movie(Response * response) {
@@ -293,7 +284,8 @@ void view_tickets(Client client, char * client_name) {
     list_destroy(tickets);
 
     // press key to go back
-    getkey();
+    printf("Press any key... ");
+    CLEAR_BUFFER;
 }
 
 Ticket * get_ticket(Response * response, char * client_name) {
@@ -552,7 +544,8 @@ int get_string(char * msg, char * buff, unsigned int max_len) {
         buff[i] = (char) c;
         i++;
     }
-    buff[i]=0;
+    if (i == max_len) i--;
+    buff[i] = 0;
 
     if(c != '\n'){
         CLEAR_BUFFER;

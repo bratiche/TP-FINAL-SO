@@ -1,7 +1,6 @@
 #ifndef TPE_FINAL_SO_CLIENT_H
 #define TPE_FINAL_SO_CLIENT_H
 
-#define CLIENT_NAME_LENGTH  32
 #define BUFFER_SIZE         4096
 
 #define DEFAULT_HOST "localhost"

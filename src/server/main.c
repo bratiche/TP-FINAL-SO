@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <syslog.h>
-#include <limits.h>
-#include <errno.h>
 #include "server.h"
 #include "../utils.h"
 
