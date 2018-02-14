@@ -42,8 +42,6 @@ Ticket * new_ticket(Showcase showcase, int seat);
 
 void destroy_ticket(Ticket * ticket);
 
-char * get_response_status(Response * response);
-
 void print_response(Response * response);
 
 void destroy_response(Response * response);

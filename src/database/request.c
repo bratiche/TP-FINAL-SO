@@ -32,7 +32,25 @@ Request * new_request(void) {
     return request;
 }
 
-void log_request(Request * request);
+static void log_request(Request * request) {
+    char buffer[BUFFER_SIZE];
+    char * aux = buffer;
+    aux += sprintf(aux, "%s(", get_request_type(request->type));
+
+    for (int i = 0; i < request->argc; i++) {
+        aux += sprintf(aux, "%s", request->args[i]);
+        if (i < request->argc -1) {
+            aux += sprintf(aux, ",");
+        }
+    }
+
+    sprintf(aux, ")");
+    syslog(LOG_DEBUG, "[DATABASE] request %s", buffer);
+}
+
+static void log_response(int type) {
+    syslog(LOG_DEBUG, "[DATABASE] response %s", get_response_type(type));
+}
 
 void process_request(int state, Request * request) {
 
@@ -45,7 +63,7 @@ void process_request(int state, Request * request) {
     log_request(request);
     database_open();
 
-    int cache;
+    int cache = RESPONSE_ERR;
     switch(request->type){
         case ADD_CLIENT:
             cache=add_client(request->args[0]);
@@ -60,19 +78,19 @@ void process_request(int state, Request * request) {
             printf("%d\n",cache);
             break;
         case GET_MOVIES:
-            show_movies();
+            cache = show_movies();
             break;
         case GET_SEATS:
-            show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
+            cache = show_seats(request->args[0],atoi(request->args[1]),atoi(request->args[2]));
             break;
         case GET_SHOWCASES:
-            show_showcases();
+            cache = show_showcases();
             break;
         case GET_BOOKING:
-            show_client_booking(request->args[0]);
+            cache = show_client_booking(request->args[0]);
             break;
         case GET_CANCELLED:
-            show_client_cancelled(request->args[0]);
+            cache = show_client_cancelled(request->args[0]);
             break;
         case REMOVE_BOOKING:
             cache=cancel_booking(request->args[0],request->args[1],atoi(request->args[2]),atoi(request->args[3]),atoi(request->args[4]));
@@ -91,73 +109,16 @@ void process_request(int state, Request * request) {
     printf(".\n");
     fflush(stdout);     // la magia
     database_close();
-}
-
-char * get_cmd(int type) {
-    char * ret;
-    switch(type) {
-        case ADD_CLIENT:
-            ret = "ADD_CLIENT";
-            break;
-        case ADD_SHOWCASE:
-            ret = "ADD_SHOWCASE";
-            break;
-        case ADD_BOOKING:
-            ret = "ADD_BOOKING";
-            break;
-        case REMOVE_SHOWCASE:
-            ret = "REMOVE_SHOWCASE";
-            break;
-        case REMOVE_BOOKING:
-            ret = "REMOVE_BOOKING";
-            break;
-        case GET_BOOKING:
-            ret = "GET_BOOKING";
-            break;
-        case GET_CANCELLED:
-            ret = "GET_CANCELLED";
-            break;
-        case GET_SHOWCASES:
-            ret = "GET_SHOWCASES";
-            break;
-        case GET_MOVIES:
-            ret = "GET_MOVIES";
-            break;
-        case GET_SEATS:
-            ret = "GET_SEATS";
-            break;
-        default:
-            ret = "UNKNOWN COMMAND";
-            break;
-    }
-
-    return ret;
+    log_response(cache);
 }
 
 void print_request(Request * request) {
-    printf("argc:%d\ncmd:%d\ntype:%s\n", request->argc, request->type, get_cmd(request->type));
+    printf("argc:%d\ncmd:%d\ntype:%s\n", request->argc, request->type, get_request_type(request->type));
 
     for (int i = 0; i < request->argc; i++) {
         printf("argv[%d]:%s\n", i, request->args[i]);
     }
 
-}
-
-//TODO log queries
-void log_request(Request * request) {
-    char buffer[BUFFER_SIZE];
-    char * aux = buffer;
-    aux += sprintf(aux, "%s(", get_cmd(request->type));
-
-    for (int i = 0; i < request->argc; i++) {
-        aux += sprintf(aux, "%s", request->args[i]);
-        if (i < request->argc -1) {
-            aux += sprintf(aux, ",");
-        }
-    }
-
-    sprintf(aux, ")");
-    syslog(LOG_DEBUG, "[DATABASE] request %s", buffer);
 }
 
 void destroy_request(Request * request) {

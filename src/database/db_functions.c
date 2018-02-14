@@ -243,14 +243,14 @@ int show_seats(char *movie, int day, int room){
         int client_id=INVALID_ID;
         char *showb_query=malloc(MAX_QUERY_SIZE);
         sprintf(showb_query,"SELECT client_id FROM booking "
-                "WHERE showcase_id = %d AND seat = %d AND cancelled = 0",
+                "WHERE showcase_id = %d AND seat = %d",
                 show_id,i);
         rc = sqlite3_exec(db_fd,showb_query,callback_retr_id,&client_id,&exec_error_msg);
         free(showb_query);
         if(client_id==INVALID_ID){
-            printf("1\n");
+            printf("%d\n", EMPTY_SEAT);
         }else{
-            printf("0\n");
+            printf("%d\n", RESERVED_SEAT);
         }
     }
     return RESPONSE_OK;

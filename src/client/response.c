@@ -137,41 +137,6 @@ void destroy_ticket(Ticket * ticket) {
     free(ticket);
 }
 
-char * get_response_status(Response * response) {
-    char * ret;
-    switch (response->status) {
-        case RESPONSE_OK:
-            ret = "OK";
-            break;
-        case RESPONSE_ERR:
-            ret = "ERROR";
-            break;
-        case ALREADY_EXIST:
-            ret = "ALREADY EXISTS";
-            break;
-        case FAIL_TO_OPEN:
-            ret = "FAIL TO OPEN";
-            break;
-        case FAIL_QUERY:
-            ret =  "FAIL QUERY";
-            break;
-        case BAD_BOOKING:
-            ret = "BAD BOOKING";
-            break;
-        case BAD_CLIENT:
-            ret =  "BAD CLIENT";
-            break;
-        case BAD_SHOWCASE:
-            ret = "BAD SHOWCASE";
-            break;
-        default:
-            ret = "UNKNOWN ERROR";
-            break;
-    }
-
-    return ret;
-}
-
 void print_response(Response * response) {
     printf("status:%d\n", response->status);
     printf("argc:%d\n", response->argc);

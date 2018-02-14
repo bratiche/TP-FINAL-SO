@@ -2,7 +2,7 @@
 #define TPE_FINAL_SO_PROTOCOL_H
 
 #define ROWS        10
-#define COLS        4
+#define COLS        8
 #define SEATS       ROWS * COLS
 
 #define MAX_ARGS    5
@@ -11,24 +11,25 @@
 
 #define MOVIE_NAME_LENGTH   ARG_SIZE
 #define CLIENT_NAME_LENGTH  ARG_SIZE
-#define EMPTY_SEAT 1
+#define EMPTY_SEAT          1
+#define RESERVED_SEAT       0
 
 
 /**
  * Protocolo de comunicacion orientado a texto.
  *
  * request:
- * REQ_ID \n ARGUMENTOS separados por \n . \n
+ * REQ_TYPE \n ARGUMENTOS separados por \n . \n
  *
  * response:
- * OK/ERR \n DATOS separados por \n . \n
+ * RES_TYPE \n DATOS separados por \n . \n
  */
 
 /**
  * Comandos de la request
  */
 typedef enum {
-    // argumentos           respuesta
+    // comando              argumentos              respuesta
 
     ADD_CLIENT,             // name                 ok
 
@@ -70,6 +71,14 @@ typedef enum {
     THU,
     FRI,
     SAT,
-} days;
+} day;
+
+/** Funciones auxiliares para traducir los enums a strings */
+
+char * get_day(int day);
+
+char * get_request_type(int type);
+
+char * get_response_type(int type);
 
 #endif //TPE_FINAL_SO_PROTOCOL_H

@@ -163,7 +163,7 @@ ssize_t server_read_request(Server server, ClientData * data) {
         n = write(server->database_in, buffer, strlen(buffer));
     }
 
-    printf("request: %s", buffer);
+    //printf("request: %s", buffer);
 
     return n;
 }
@@ -179,11 +179,11 @@ ssize_t server_send_response(Server server, ClientData * data) {
     ssize_t n;
 
     bool done = false;
-    printf("response: ");
+    //printf("response: ");
     do {
         bzero(buffer, BUFFER_SIZE);
         n = read(server->database_out, buffer, BUFFER_SIZE);
-        printf("%s", buffer);
+        //printf("%s", buffer);
         done = check_response_end(buffer);
         if (n > 0) { 
             n = send(client_fd, buffer, strlen(buffer), MSG_NOSIGNAL);

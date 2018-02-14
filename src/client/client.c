@@ -119,5 +119,6 @@ ssize_t client_recv(Client client, char * buff) {
 void client_close(Client client) {
     close(client->fd);
     free(client);
+    syslog(LOG_DEBUG, "[CLIENT] disconnected");
 }
 
