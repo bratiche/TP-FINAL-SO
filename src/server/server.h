@@ -1,8 +1,11 @@
 #ifndef TPE_FINAL_SO_SERVER_H
 #define TPE_FINAL_SO_SERVER_H
 
+#include "sys/types.h"
+
 #define BUFFER_SIZE  4096
 #define DEFAULT_PORT 12345
+#define DEFAULT_DATABASE_FILENAME "cinema.db"
 
 typedef struct server * Server;
 
@@ -13,7 +16,7 @@ typedef struct {
 } ClientData;
 
 /** Setup and initialization of a TCP server in the specified port */
-Server server_init(int port);
+Server server_init(int port, char * db_filename);
 
 /** Waits for incoming connections and returns a pointer to a new client structure */
 ClientData * server_accept_connection(Server server);

@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <getopt.h>
+#include <ctype.h>
 #include "getnum.h"
 #include "client.h"
 #include "response_parser.h"
@@ -30,8 +33,8 @@ typedef enum {
     CLIENT_EXIT
 } client_menu_option;
 
-int get_string(char * msg, char * buff, unsigned int max_len);
-int get_option(char * msg, char ** options, unsigned int count);
+int get_string(char * msg, char * buff, int max_len);
+int get_option(char * msg, char ** options, int count);
 
 /** Serializes a request and sends it to the server */
 ssize_t send_request(Client client, int request_type, const char * fmt, ...) {
@@ -569,16 +572,40 @@ void client_start(Client client) {
     }
 }
 
+void parse_options(int argc, char **argv, char ** host, int * port) {
+    opterr = 0;
+    /* p: option e requires argument p:: optional argument */
+    int c;
+    while ((c = getopt (argc, argv, "h:p:")) != -1) {
+        switch (c) {
+            /* Host name */
+            case 'h':
+                *host = optarg;
+                break;
+            /* Server port number */
+            case 'p':
+                *port = parse_port(optarg);
+                break;
+            case '?':
+                if (optopt == 'h' || optopt == 'p')
+                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+                exit(1);
+            default:
+                abort();
+        }
+    }
+}
+
 int main(int argc, char*argv[]) {
 
     char * hostname = DEFAULT_HOST;
     int server_port = DEFAULT_PORT;
-    if (argc >= 2) {
-        hostname = argv[1];
-        if (argc >=3) {
-            server_port = parse_port(argv[2]);
-        }
-    }
+
+    parse_options(argc, argv, &hostname, &server_port);
 
     Client client = client_init(hostname, server_port);
     if (client == NULL) {
@@ -590,7 +617,7 @@ int main(int argc, char*argv[]) {
     return 0;
 }
 
-int get_string(char * msg, char * buff, unsigned int max_len) {
+int get_string(char * msg, char * buff, int max_len) {
     printf("%s",msg);
     int c;
     int i = 0;
@@ -608,7 +635,7 @@ int get_string(char * msg, char * buff, unsigned int max_len) {
     return i;
 }
 
-int get_option(char * msg, char ** options, unsigned int count) {
+int get_option(char * msg, char ** options, int count) {
     int option = 0;
 
     do {

@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <getopt.h>
+#include <ctype.h>
 #include "server.h"
 #include "../utils.h"
 
@@ -20,19 +22,48 @@ static void new_thread(ClientData * data);
 /** Single connection handler */
 static void * handle_connection(void* data);
 
+void parse_options(int argc, char **argv, int * port, char ** filename) {
+    opterr = 0;
+    /* p: option e requires argument p:: optional argument */
+    int c;
+    while ((c = getopt (argc, argv, "p:f:")) != -1) {
+        switch (c) {
+            /* Server port number */
+            case 'p':
+                *port = parse_port(optarg);
+                break;
+            /* Database file name */
+            case 'f':
+                *filename = optarg;
+                break;
+            case '?':
+                if (optopt == 'p' || optopt == 'f')
+                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+                exit(1);
+            default:
+                abort();
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
 
     int server_port = DEFAULT_PORT;
-    if (argc >= 2) {
-        server_port = parse_port(argv[1]);
-    }
+    char * filename = DEFAULT_DATABASE_FILENAME;
 
-    server = server_init(server_port);
+    parse_options(argc, argv, &server_port, &filename);
+
+    server = server_init(server_port, filename);
     if (server == NULL) {
         fprintf(stderr, "Server initialization failed\n");
         return -1;
     }
 
+    printf("Successful database setup: '%s'\n", filename);
     printf("Listening on TCP port %d\n", server_port);
     printf("Waiting for connections...\n");
 

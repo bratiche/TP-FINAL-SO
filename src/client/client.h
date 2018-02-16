@@ -1,6 +1,8 @@
 #ifndef TPE_FINAL_SO_CLIENT_H
 #define TPE_FINAL_SO_CLIENT_H
 
+#include "sys/types.h"
+
 #define BUFFER_SIZE         4096
 
 #define LOCALHOST    "127.0.0.1"

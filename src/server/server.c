@@ -6,6 +6,7 @@
 #include <memory.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <strings.h>
 #include "server.h"
 
 #define PENDING_CONNECTIONS 10
@@ -24,7 +25,7 @@ struct server {
 };
 
 /** Forks database handler process and creates pipes for inter-process communication */
-static int database_init(Server server);
+static int database_init(Server server, char * filename);
 
 int create_master_socket(int protocol, struct sockaddr *addr, socklen_t addr_len) {
     int sock_opt = true;
@@ -54,7 +55,7 @@ int create_master_socket(int protocol, struct sockaddr *addr, socklen_t addr_len
     return sock;
 }
 
-Server server_init(int port) {
+Server server_init(int port, char * db_filename) {
     Server server = malloc(sizeof(struct server));
 
     if (server == NULL) {
@@ -78,7 +79,7 @@ Server server_init(int port) {
         return NULL;
     }
 
-    if (database_init(server) < 0) {
+    if (database_init(server, db_filename) < 0) {
         free(server);
         return NULL;
     }
@@ -107,7 +108,7 @@ ClientData * server_accept_connection(Server server) {
     return ret;
 }
 
-int database_init(Server server) {
+int database_init(Server server, char * filename) {
 
     //create pipes, bytes written on db_...[1] can be read from db_...[0]
     int db_in[2];
@@ -125,6 +126,7 @@ int database_init(Server server) {
 
     if (pid < 0) {
         fprintf(stderr, "Error starting database\n");
+        perror("fork() failed");
         return -1;
     } else if (pid == 0) {
         dup2(db_in[0], STDIN_FILENO);
@@ -133,13 +135,12 @@ int database_init(Server server) {
         close(db_in[1]);
         close(db_out[0]);
 
-        char * argv[] = {NULL};
+        char * argv[] = {DATABASE_PROC, filename, NULL};
         char * envp[] = {NULL};
-        int value = execve(DATABASE_PROC, argv, envp);
-        if (value < 0) {
-            perror("execve() failed");
-            return -1;
-        }
+
+        execve(DATABASE_PROC, argv, envp);
+        perror("execve() failed");  /* execve() returns only on error */
+        exit(EXIT_FAILURE);
     } else {
         close(db_in[0]);
         close(db_out[1]);
@@ -178,7 +179,7 @@ ssize_t server_send_response(Server server, ClientData * data) {
     char * buffer = data->buffer;
     ssize_t n;
 
-    bool done = false;
+    bool done;
     //printf("response: ");
     do {
         bzero(buffer, BUFFER_SIZE);

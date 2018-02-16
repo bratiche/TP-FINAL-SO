@@ -59,12 +59,12 @@ int resolve_server_address(char * hostname, int port, Client client) {
     char buff[7];
     snprintf(buff, sizeof(buff), "%hu", port);
     if (0 != getaddrinfo(hostname, buff, &hints, &server_resolution)){
-        fprintf(stderr,"Domain name resolution error.\n");
+        fprintf(stderr,"Domain name resolution error. Unable to find host '%s'\n", hostname);
         return -1;
     }
 
     if(server_resolution == 0) {
-        fprintf(stderr, "Invalid domain.\n");
+        fprintf(stderr, "Invalid domain '%s'.\n", hostname);
         return -1;
     }
 

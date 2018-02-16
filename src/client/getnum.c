@@ -40,8 +40,6 @@ getint(const char mensaje[], ... )
 			BORRA_BUFFER;
 		else
 			salir = finalBuffer();
-		if ( !salir);
-			//printf("\nDato incorrecto\n");
 
 	} while (! salir);
 	return n;
@@ -65,8 +63,7 @@ getfloat(const char mensaje[], ...)
 			BORRA_BUFFER;
 		else
 			salir = finalBuffer();
-		if ( !salir);
-			//printf("\nDato incorrecto\n");
+
 	} while (! salir);
 	return n;
 }
@@ -89,8 +86,7 @@ getdouble(const char mensaje[], ...)
 			BORRA_BUFFER;
 		else
 			salir = finalBuffer();
-		if ( !salir);
-			//printf("\nDato incorrecto\n");
+
 	} while (! salir);
 	return n;
 }
@@ -112,7 +108,6 @@ yesNo(const char mensaje[], ...)
 		op = getchar();
 		if ( strchr("YyNn", op) == NULL)
 		{
-			//printf("\nDato incorrecto\n");
 			if (op != '\n')
 				BORRA_BUFFER;
 		}

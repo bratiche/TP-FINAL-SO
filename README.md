@@ -1,49 +1,62 @@
 # TPE FINAL SO
 ## Materiales
 
-* Archivo de construcción: `CMakeLists.txt`, ubicado en el directorio raíz.
+* Archivo de construcción: `build.sh`, ubicado en el directorio raíz.
 * Informe: `docs/Informe.pdf`.
-* Códigos fuente: carpetas `src/client`, `src/server` y `src/database`.
+* Códigos fuente: carpetas `src` y `tests`.
 
 ## Compilación
 
 Para compilar correr en el directorio raíz:
  
 ```
-cmake .
-make
+./build.sh
 ```
 
 ### Dependencias
-
+* cmake (versión 3.5)
 * sqlite3 :  `sudo apt-get install libsqlite3-dev`
-
 
 ### Artefactos generados
 
-Se generan tres binarios en la raíz del directorio con los nombres:
+Se generan tres binarios en el directorio `build` con los nombres:
 
 * server: servidor concurrente TCP
 * client: cliente que provee una interfaz para interactuar con el servidor
-* database: programa externo de consulta y manipulacion de base de datos 
+* database: programa externo de consulta y manipulación de base de datos
+
+Además se generan los binarios correspondientes a los tests en `build/tests` 
 
 ## Ejecución
 ### server
 ```
-./server <port?>
+./server [options]
 ```
-Una vez ejecutado se escucharan pedidos de conexion en el puerto elegido.
+options:
+* -p \<port\> : puerto (`12345` por default)
+* -f \<file\> : archivo de base de datos (`cinema.db` por default)
+
+Una vez ejecutado se escucharán pedidos de conexión en el puerto elegido.
 ### client
 ```
-./client <hostname?> <port?>
+./client [options]
 ```
-Luego de establecer la conexion con el servidor se presenta una interfaz para poder realizar consultas a la base de datos.
+options:
+* -h \<host\> : dirección del servidor (`localhost` por default)
+* -p \<port\> : puerto (`12345` por default)
+
+Luego de establecer la conexión con el servidor se presenta una interfaz para poder realizar consultas a la base de datos.
 ### database
 ```
-./database
+./database <filename>
 ```
-Permite manipular la base de datos mediante el protocolo definido en `src/protocol.h`.
-
+Permite manipular la base de datos ubicada en el archivo `filename` mediante el protocolo definido en `src/protocol.h`.
+### tests
+```
+cd build/tests
+ctest --output-on-failure
+```
+Corre todos los tests de unidad.
 ## Logs
 
 Todos los binarios dejan logs en el sistema, para verlos correr:

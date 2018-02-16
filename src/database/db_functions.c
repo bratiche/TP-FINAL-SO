@@ -1,5 +1,4 @@
 #include "db_functions.h"
-#include "../protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -37,9 +36,9 @@ int callback_retr_id(void *data, int argc, char **argv, char **azColName);
 
 
 
-int database_open(){
-    int file_exist=access(DB_FILENAME,F_OK);
-    if (sqlite3_open(DB_FILENAME, &db_fd) != SQLITE_OK) {
+int database_open(const char * filename){
+    int file_exist=access(filename,F_OK);
+    if (sqlite3_open(filename, &db_fd) != SQLITE_OK) {
         sqlite3_close(db_fd);
         return FAIL_TO_OPEN;
     }
@@ -175,23 +174,7 @@ int show_movies(){
     return RESPONSE_OK;
 }
 
-//int show_showcases(){
-//    sqlite3_stmt *stmt = NULL;
-//    char* showq=malloc(MAX_QUERY_SIZE);
-//    sprintf(showq,"SELECT DISTINCT movie,day,room FROM showcase");
-//    int rc = sqlite3_prepare_v2(db_fd, showq, -1, &stmt, NULL);
-//    free(showq);
-//    if (rc != SQLITE_OK) {
-//        printf("%d\n", FAIL_QUERY);
-//        return FAIL_QUERY;
-//    }
-//
-//    printf("%d\n", RESPONSE_OK);
-//    print_cols(rc,stmt);
-//    return RESPONSE_OK;
-//}
-
-int show_showcases_by_movie(char* movie){
+int show_showcases(char* movie){
     sqlite3_stmt *stmt = NULL;
     char* showq=malloc(MAX_QUERY_SIZE);
     sprintf(showq,"SELECT DISTINCT movie,day,room FROM showcase WHERE movie = '%s'",movie);

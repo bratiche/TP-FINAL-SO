@@ -1,6 +1,7 @@
 #ifndef TPE_FINAL_SO_REQUEST_H
 #define TPE_FINAL_SO_REQUEST_H
 
+#include <check.h>
 #include "../protocol.h"
 
 #define BUFFER_SIZE 4096
@@ -13,8 +14,6 @@ typedef struct {
 
 
 Request * new_request(void);
-
-void process_request(int state, Request * request);
 
 void print_request(Request * request);
 

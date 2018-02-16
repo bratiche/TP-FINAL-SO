@@ -24,6 +24,8 @@ response_state new_arg_block(ResponseParser * parser) {
 
     aux = realloc(aux, (size_t)parser->arg_index + ARG_BLOCK);
     if (aux == NULL) {
+        free(parser->arg);
+        parser->arg = NULL;
         return response_error;
     }
 
@@ -64,6 +66,13 @@ response_state copy_arg(ResponseParser * parser, response_state state) {
     char ** aux = realloc(parser->response->args, (sizeof (char*)) * (parser->response->argc + 1));
 
     if (aux == NULL) {
+        for (int i = 0; i < parser->response->argc; i++) {
+            free(parser->response->args[i]);
+            parser->response->args[i] = NULL;
+        }
+        parser->response->argc = 0;
+        free(parser->response->args);
+        parser->response->args = NULL;
         fprintf(stderr, "Memory error");
         return response_error;
     }

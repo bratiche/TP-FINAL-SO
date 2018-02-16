@@ -14,7 +14,7 @@ int parse_port(char *optarg) {
     if (end == optarg|| '\0' != *end
         || ((LONG_MIN == sl || LONG_MAX == sl) && ERANGE == errno)
         || sl < 0 || sl > USHRT_MAX) {
-        fprintf(stderr, "port should be an integer: %s\n", optarg);
+        fprintf(stderr, "invalid port number: %s\n", optarg);
         exit(1);
     }
 
